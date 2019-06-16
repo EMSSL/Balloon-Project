@@ -27,7 +27,7 @@
 #include <Adafruit_ADS1015.h> // ADC library
 #include <xbeeAPI.h>          // xbee library (900HP S3B models in API SPI mode)
 #include <Adafruit_DotStar.h> // controls LED on ItsyBitsyM4 MCU
-#include <Servo.h>            // controls rudder servo
+//#include <Servo.h>            // controls rudder servo
 
 #define usb Serial            // renames Serial as usb
 #define gps Serial1           // renames Serial2 as gps
@@ -53,8 +53,8 @@ bool stringGrab_gps = false;
 bool stringGrab_other = false;
 
 // RUDDER CONTROL STUFFS
-#define rudderPot A0
-#define rudderServo A4
+//#define rudderPot A0        // NOT USED UNTIL RUDDER CLASS FINISHED
+//#define rudderServo A4
 
 // IMU OBJECT DEFINITION
 Adafruit_BNO055 IMU = Adafruit_BNO055(55, BNO055_ADDRESS_B); 
@@ -289,7 +289,7 @@ static int cutdown_sense(struct pt *pt){
   PT_BEGIN(pt);
   while(1){
     PT_WAIT_UNTIL(pt,((cutdownStamp > 0) && ((float)altitude > (float)altitudeThresh) && ((millis()-cutdownStamp) >= cutdownThresh)));
-    cutdown();
+    cutdownFunc();
   }
   PT_END(pt);
 }
@@ -484,16 +484,16 @@ static int xbeeCommand_sense(struct pt *pt){
   PT_END(pt);
 }
 
-//*************************************************************************************************************
-//*******                                   PROTOTHREAD rudderAngle_sense
-//*************************************************************************************************************
-static int rudderAngle_sense(struct pt *pt){
-  PT_BEGIN(pt);
-  PT_WAIT_UNTIL(pt, (!rudderControl) && (getRudderAngle() != rudderAngle_set) && (millis() - rudderAngle_stamp > rudderAngle_thresh));
-    driveRudderManual(rudderAngle_set);
-    rudderAngle_stamp = millis();
-  PT_END(pt);
-}
+////*************************************************************************************************************
+////*******                                   PROTOTHREAD rudderAngle_sense                                               // probably wrapped up into Rudder Class
+////*************************************************************************************************************
+//static int rudderAngle_sense(struct pt *pt){
+//  PT_BEGIN(pt);
+//  PT_WAIT_UNTIL(pt, (!rudderControl) && (getRudderAngle() != rudderAngle_set) && (millis() - rudderAngle_stamp > rudderAngle_thresh));
+//    driveRudderManual(rudderAngle_set);
+//    rudderAngle_stamp = millis();
+//  PT_END(pt);
+//}
 
 
 
@@ -928,6 +928,10 @@ uint16_t stringGrab(String input_string){
     gps_size = input_string.length();
     return 0;
   }
+  else
+  {
+    return 0;
+  }
 }
 
 //*************************************************************************************************************
@@ -987,20 +991,23 @@ void commandParse(uint8_t cmd_buffer[], int buffer_size){
   switch(command_type)
   {
     case 0xFF:                        // initiates a cutdown
-      cutdown();
+      cutdownFunc();
       break;
-    case 0xFE:                        // sets the rudder angle and kicks rudder control
-      rudderControl = false;          // into manual mode
-      rudderAngle_set = command_val;
-      break;
-    case 0xFD:                        // sets the auto-controller for rudderAngle
-      if(command_val == 0x01)
-      {
-        rudderControl = true;
-      }
-      break;
+//    case 0xFE:                        // sets the rudder angle and kicks rudder control
+//      rudderControl = false;          // into manual mode
+//      rudderAngle_set = command_val;
+//      break;
+//    case 0xFD:                        // sets the auto-controller for rudderAngle
+//      if(command_val == 0x01)
+//      {
+//        rudderControl = true;
+//      }
+//      break;
     case 0xFC:                        // prints out system stats (errors and stuff);
       getSystemStats();
+      break;
+    case 0xFB:                        // if receiver, used to receive and print out system stats
+      parse_systemStats(command_val);
       break;
     default:
       break;
@@ -1008,30 +1015,72 @@ void commandParse(uint8_t cmd_buffer[], int buffer_size){
 }
 
 //*************************************************************************************************************
-//*******                                           getRudderAngle
+//*******                                           getSystemStats
 //*************************************************************************************************************
-uint8_t getRudderAngle(){
+void getSystemStats(){
+  uint8_t sys_stat = 0x00;
   
-}
+  sys_stat |= (uint8_t)(cutdown << 7);          //
+  sys_stat |= (uint8_t)(isError << 6);          //
+  sys_stat |= (uint8_t)(fatalError << 5);       //
+  sys_stat |= (uint8_t)(sdError << 4);          //  build a single systemStatus byte
+  sys_stat |= (uint8_t)(makeFileError << 3);    //
+  sys_stat |= (uint8_t)(gpsError << 2);         //
+  sys_stat |= (uint8_t)(imuError << 1);         //
+  sys_stat |= (uint8_t)(altError);              //
 
-//*************************************************************************************************************
-//*******                                           driveRudderManual
-//*************************************************************************************************************
-void driveRudderManual(){
-  
+  xbee.sendCommand((uint8_t)0xFB,sys_stat); // sends response as a command to ensure receipt by ground
 }
 
 //*************************************************************************************************************
 //*******                                           getSystemStats
 //*************************************************************************************************************
-void getSystemStats(){
-  
+void parse_systemStats(uint8_t sys_stat){
+  uint8_t masked_stat;
+  String errorName;
+  Serial.println(F("\n\n***System Status***\n"));
+  for(int i = 7; i >= 8; i--)
+  {
+    masked_stat = sys_stat & (uint8_t)(1 << i);
+    if(masked_stat)
+    {
+      switch(i)
+      {
+        case 7:
+          errorName = "A CUTDOWN IN PROGRESS!";
+          break;
+        case 6:
+          errorName = "an error present";
+          break;
+        case 5:
+          errorName = "a fatal error present";
+          break;
+        case 4:
+          errorName = "an SD card error";
+          break;
+        case 3:
+          errorName = "an error involving makeFile function";
+          break;
+        case 2:
+          errorName = "a GPS unit error";
+          break;
+        case 1:
+          errorName = "an IMU error";
+          break;
+        case 0:
+          errorName = "an altimeter error";
+          break;
+      };
+      Serial.print(F("    - There is "));
+      Serial.println(errorName);
+    }
+  }
 }
 
 //*************************************************************************************************************
 //*******                                           cutdown
 //*************************************************************************************************************
-void cutdown(){
+void cutdownFunc(){
   usb.println(F("CUTDOWN INITIATED! FUUUUUUUUU!"));
   digitalWrite(CUTDOWN, LOW);
   delay(10000);
@@ -1680,7 +1729,7 @@ void setup() {
   PT_INIT(&stringGrabOtherPT);  //
   PT_INIT(&stringChopPT);       //
   PT_INIT(&xbeeCommandPT);      //
-  PT_INIT(&rudderAnglePT);      //
+  //PT_INIT(&rudderAnglePT);      // not implemented yet, used with Rudder Class
 
   usb.println(F("Setup complete, entering loop!"));
 
@@ -1693,10 +1742,11 @@ void setup() {
 //*******                                           LOOP
 //*************************************************************************************************************
 void loop() {
+  //xbeeCommand_sense(&xbeeCommandPT);
   
   stringGrabInit_sense(&stringGrabInitPT);
   
-  stringChop_sense(&stringChopPT)
+  stringChop_sense(&stringChopPT);
   
   xbee.protothreadLoop();                                                                                            // enable watchdog timer
 //  usb.print(F("1,"));
