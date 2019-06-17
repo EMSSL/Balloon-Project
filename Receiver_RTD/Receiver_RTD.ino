@@ -27,6 +27,8 @@ uint16_t XP1_NP;                            // for storing the xbee's NP AT valu
 File OtherData;                 // SD file for sensor data
 File GPSdata;                   // SD file for GPS data
 
+Display gondola_display("Gondola");    // diplay object for the gondola
+
 String gpsTotal;                // final string used to write to GPSdata
 String otherTotal;              // final string used to write to OtherData
 
@@ -50,9 +52,12 @@ bool classified[3];         // used to track which buffers have been classified
 uint8_t command_buf[20];    // grabs the command frames from the xbee buffer
 uint8_t command_ind;        // grabs the command frame index from the xbee library
 
+long gpsInfo_stamp = 0;     // used to track the last time GPS info was grabbed from an incoming string
+
 static struct pt getreceivedPT;
 static struct pt decompressPT;
 static struct pt classifyPT;
+static struct pt getGPSInfoPT;
 
 //*************************************************************************************************************
 //*******                                   PROTOTHREAD getReceived_sense
@@ -77,24 +82,23 @@ static int decompress_sense(struct pt *pt){
 }
 
 //*************************************************************************************************************
-//*******                                   PROTOTHREAD decompress_sense
-//*************************************************************************************************************
-static int decompress_sense(struct pt *pt){
-  PT_BEGIN(pt);
-  PT_WAIT_UNTIL(pt,activePackets_compressed && (activePackets_decompressed < 3));
-    decompControl();
-    activePackets_compressed--;
-    activePackets_decompressed++;
-  PT_END(pt);
-}
-
-//*************************************************************************************************************
 //*******                                   PROTOTHREAD classify_sense
 //*************************************************************************************************************
 static int classify_sense(struct pt *pt){
   PT_BEGIN(pt);
   PT_WAIT_UNTIL(pt,activePackets_decompressed && !(classified[0] & classified[1] & classified[2]));
     classify();
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                                   PROTOTHREAD getGPSInfo_sense
+//*************************************************************************************************************
+static int getGPSInfo_sense(struct pt *pt){
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt,((millis() - gpsInfo_stamp > 900) && (classified[0] && !dataType[0]) || (classified[1] && !dataType[1]) || (classified[2] && !dataType[2])));
+    getGPSInfo();
+    gpsInfo_stamp = millis();
   PT_END(pt);
 }
 
@@ -241,6 +245,53 @@ void classify()
     dataType[2] = matches;
     classified[2] = true;
   }
+}
+
+//*************************************************************************************************************
+//*******                                getGPSInfo
+//*************************************************************************************************************
+void getGPSInfo()
+{ 
+  uint8_t active_frame;               // keeps track of which frame we are working on
+  if(classified[0] && !dataType[0])
+  {
+    active_frame = 0;
+    uint16_t prior_stringLength = byteArray2string(received_decompressed1, rec_comp_index[0], &gpsTotal); 
+  }
+  else if(classified[1] && !dataType[1])
+  {
+    active_frame = 1;
+    uint16_t prior_stringLength = byteArray2string(received_decompressed2, rec_comp_index[1], &gpsTotal);
+  }
+  else if(classified[2] && !dataType[2])
+  {
+    active_frame = 2;
+    uint16_t prior_stringLength = byteArray2string(received_decompressed3, rec_comp_index[2], &gpsTotal);
+  }
+  
+  uint16_t money_index = gpsTotal.indexOf('$',prior_stringLength);
+  String gps_sentence = gpsTotal.substring(money_index + 1, money_index + 7);
+  if(gps_sentence.equals("GPGGA")
+  {
+    
+  }
+  else if (gps_sentence.equals("GPRMC")
+  {
+    
+  }
+}
+
+//*************************************************************************************************************
+//*******                                charArray2string
+//*************************************************************************************************************
+uint16_t charArray2string(uint8_t input_array[], uint16_t input_size, String *output_string)
+{
+  uint16_t current_stringLength = *output_string.length();
+  for(int i = 0; i < input_size; i++)
+  {
+    *output_string += input_array[i];
+  }
+  return current_stringLength;
 }
 
 //*************************************************************************************************************
@@ -601,4 +652,37 @@ delay(250);                   // allows time for the pin operations and sensors 
 void loop() {
   // put your main code here, to run repeatedly:
 
+}
+
+//*************************************************************************************************************
+//*******                                 CLASSDEF :: DISPLAY
+//*************************************************************************************************************
+Class Display{
+  public:
+    Display(String);
+    static void printStats();
+    void printCommandLine();
+    void setVerbosity(uint8_t);
+    
+  private:
+    static uint8_t num_of_disps;
+    String disp_name; 
+    String latitude;
+    String longitude;
+    String elevation;
+    uint8_t fix_quality;
+    uint8_t sats_tracked;
+    String horiz_dop;
+}
+
+void Display(String disp_Name)
+{
+  num_of_disps++;
+  
+  Display::disp_name = disp_Name;
+  Display::latitude = "no info available yet";
+  Display::longitude = "no info available yet";
+  Display::elevation = "no info available yet";
+  Display::fix_quality = 0;
+  Display::sats_tracked = 0;
 }
