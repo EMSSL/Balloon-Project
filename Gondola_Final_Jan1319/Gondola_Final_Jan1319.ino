@@ -59,13 +59,13 @@ bool stringGrab_other = false;
 // IMU OBJECT DEFINITION
 Adafruit_BNO055 IMU = Adafruit_BNO055(55, BNO055_ADDRESS_B); 
 //#define imuReset 34     // used on the imu RST pin for a soft reset
-#define imuPower 22     // used on the imu power transistor gate for a hard reset
+#define imuPower 12     // used on the imu power transistor gate for a hard reset
 uint8_t system_status, self_test_results, system_error; // imu sensor error vars
 
 //SPI communication pins, SCK, MISO, and MOSI are common to all SPI sensors, CS pins are unique to each 
 // SPI sensor.
 #define SD_CS 2
-#define sdPower 24      // SD power transistor gate pin
+#define sdPower 3      // SD power transistor gate pin
 
 // Pitot analog pin definition
 //#define PITOT A15
@@ -79,7 +79,7 @@ float pressure = 0;           // global vars for altimeter data
 float humid = 0;              //
 float altAltitude = 0;        // holds the altitude data supplied by the altimeter
 Adafruit_BME280 ALT;          //  ALT I2C
-#define altPower 25           //altimeter power transistor pin
+#define altPower 11           //altimeter power transistor pin
 #define altitudeThresh (2000)   // threshold altitude for cutdown timer initiation
 #define gndlvlPress 1023.4   // ground level pressure for calculating elevation  
                               //  (in mbar, even though the pressure output is in different units ¯\_(ツ)_/¯ )
@@ -105,7 +105,7 @@ Adafruit_GPS GPS(&gps); // GPS
 //#define GPSECHO  false
 boolean usingInterrupt;
 void useInterrupt(boolean);
-#define gpsPower 26           // gps power transistor gate pin (used on the ENABLE pin to control GPS power)
+//#define gpsPower 26           // gps power transistor gate pin (used on the ENABLE pin to control GPS power)
 
 
 bool isError = false;         // is there an error?
@@ -709,9 +709,9 @@ void gps_GetAlt(String NMEA_Sentence){
 //*************************************************************************************************************
 void sdFix(){
   //usb.println(F("entering sdFix"));
-  //digitalWrite(sdPower, LOW);
+  digitalWrite(sdPower, LOW);
   delay(250);
-  //digitalWrite(sdPower, HIGH);
+  digitalWrite(sdPower, HIGH);
   delay(250);
 
   if(!SD.begin()){
@@ -739,9 +739,9 @@ void sdFix(){
 //*************************************************************************************************************
 void fileFix(){
   usb.println(F("entering fileFix"));
-  //digitalWrite(sdPower, LOW);                          // resets SD card reader
+  digitalWrite(sdPower, LOW);                          // resets SD card reader
   delay(250);
-  //digitalWrite(sdPower, HIGH);
+  digitalWrite(sdPower, HIGH);
   delay(250);
 
 //  strcpy(prev_gpsfile, gpsfile);                     // updates the previous gps and other file
@@ -793,9 +793,9 @@ void gpsFix(){
 //*************************************************************************************************************
 void imuFix(){
   //usb.println(F("entering imuFix"));
-  //digitalWrite(imuPower, LOW); // resets the imu by pulling the transistor gate pin low and then high
+  digitalWrite(imuPower, LOW); // resets the imu by pulling the transistor gate pin low and then high
   delay(250);
-  //digitalWrite(imuPower, HIGH);
+  digitalWrite(imuPower, HIGH);
   delay(250);
   if(!IMU.begin()){
     imuError = true;
@@ -832,8 +832,8 @@ void imuFix(){
 //*******                                           altFix
 //*************************************************************************************************************
 void altFix(){
-  //usb.println(F("entering altFix"));
-  //digitalWrite(altPower, LOW);  // resets the altimeter via the transistor gate
+  usb.println(F("entering altFix"));
+  digitalWrite(altPower, LOW);  // resets the altimeter via the transistor gate
   delay(250);
   //digitalWrite(altPower, HIGH);
   delay(250);
@@ -1641,19 +1641,19 @@ void setup() {
   usb.println(F("INITIALIZING"));
 
   
-  //pinMode(sdPower, OUTPUT);     //
+  pinMode(sdPower, OUTPUT);     //
   //pinMode(gpsPower, OUTPUT);    //
-  //pinMode(imuPower, OUTPUT);    // Sets all power transistor gate pins and reset pins to OUTPUT mode
-  //pinMode(altPower, OUTPUT);    //
-  //pinMode(imuReset, OUTPUT);    //
-  //pinMode(CUTDOWN, OUTPUT);     //
+  pinMode(imuPower, OUTPUT);    // Sets all power transistor gate pins and reset pins to OUTPUT mode
+  pinMode(altPower, OUTPUT);    //
+//  pinMode(imuReset, OUTPUT);    //
+  pinMode(CUTDOWN, OUTPUT);     //
   
-  //digitalWrite(CUTDOWN, HIGH);   // ensures that the cutdown is not accidentally triggered during startup (HIGH ON THE CUTDOWN MEANS OFF ON THE CUTDOWN CIRCUIT)
-  //digitalWrite(sdPower, HIGH);  //
+  digitalWrite(CUTDOWN, HIGH);   // ensures that the cutdown is not accidentally triggered during startup (HIGH ON THE CUTDOWN MEANS OFF ON THE CUTDOWN CIRCUIT)
+  digitalWrite(sdPower, HIGH);  //
   //digitalWrite(gpsPower, LOW); //
-  //digitalWrite(imuPower, HIGH); // closes path to ground on all sensors, and sets the imu rst pin to HIGH
-  //digitalWrite(altPower, HIGH); //
-  //digitalWrite(imuReset, HIGH); //
+  digitalWrite(imuPower, HIGH); // closes path to ground on all sensors, and sets the imu rst pin to HIGH
+  digitalWrite(altPower, HIGH); //
+//  digitalWrite(imuReset, HIGH); //
 
   delay(250);                   // allows time for the pin operations and sensors to come up 
 
