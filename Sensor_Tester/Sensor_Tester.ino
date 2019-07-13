@@ -1,4 +1,41 @@
-
+/****************************************************************************************************************
+ * **************************************************************************************************************
+ *                        READ THIS OR RISK AN ETERNITY OF HUMILIATION AND KIDNEY STONES
+ * **************************************************************************************************************
+ * IF YOU ATTEMPT TO MODIFY THIS CODE TO FIX ERRORS, ADD NEW SENSORS, OR ADD NEW MCUs...YOU SHOULD READ UP ON THE
+ * PROPER USE OF GIT AND GITHUB, SIGN UP AND INSTALL GIT, USE IT TO CONTROL REVISIONS TO THE CODE PROPERLY, AND 
+ * MAKE SURE YOU DONT FUCK THIS CODE UP FOR EVERYONE. IF I CATCH YOU DOING THIS, YOUR P.I. WILL BE INSTRUCTED TO 
+ * NEVER AWARD YOU A DEGREE, AND EVERYONE IN THE LAB WILL LOVE YOU LESS...BECAUSE YOU ARE THE TRASHIEST OF 
+ * TRASH-PEOPLE.  -- Gerrit (^_^)
+ * **************************************************************************************************************
+ * 
+ * Sensor Tester by Gerrit Motes, EMSSL NCSU, 7/13/19
+ * 
+ * Used to validate basic operation (initilization and data collection) of any combination of the follow sensors:
+ * 
+ * - Adafruit Ultimate GPS Breakout
+ * - Adafruit MicroSD reader/writer breakout
+ * - Adafruit BME280 Altimeter Breakout
+ * - Adafruit ADS1115 ADC Breakout
+ * - Adafruit BNO055 9DOF IMU
+ * 
+ * The sketch is capable of running on any of the following MCUs:
+ * 
+ * - Adafruit Itsy Bitsy M4 Express
+ * - Adafruit 32u4 Feather
+ * - Arduino MEGA 2560 (offbrands too)
+ * - Arduino UNO (offbrands too)
+ * 
+ * To configure:
+ * 
+ *  1) uncomment the MCU you are using (comment out the rest)
+ *  2) uncomment which sensors you want to test (comment out the sensors you won't be using)
+ *  
+ * If you want to change the SD's chip select pin, find "#define SD_CS" below and change the default (5) to the
+ *  pin of your choice. 
+ *  
+ * 
+ ****************************************************************************************************************/
 
 #include <Wire.h>             // wire library (needed for some sensors)
 #include <SPI.h>              // SPI digital comms library (needed for SD card)
