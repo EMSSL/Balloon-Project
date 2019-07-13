@@ -1,6 +1,23 @@
-/*
- * Feather M4 - GPS node
- */
+/****************************************************************************************************************
+ * **************************************************************************************************************
+ *                        READ THIS OR RISK AN ETERNITY OF HUMILIATION AND KIDNEY STONES
+ * **************************************************************************************************************
+ * IF YOU ATTEMPT TO MODIFY THIS CODE TO FIX ERRORS, ADD NEW SENSORS, OR ADD NEW MCUs, WHATEVER...YOU SHOULD READ
+ * UP ON THE PROPER USE OF GIT AND GITHUB, SIGN UP AND INSTALL GIT, USE IT TO CONTROL REVISIONS TO THE CODE 
+ * PROPERLY, AND MAKE SURE YOU DONT FUCK THIS CODE UP FOR EVERYONE. IF I CATCH YOU DOING THIS, YOUR P.I. WILL BE 
+ * INSTRUCTED TO NEVER AWARD YOU A DEGREE, AND EVERYONE IN THE LAB WILL LOVE YOU LESS...BECAUSE YOU ARE THE 
+ * TRASHIEST OF TRASH-PEOPLE.  -- Gerrit (^_^)
+ * **************************************************************************************************************
+ * 
+ * Feather32u4_gps_2_sd_node by Gerrit Motes, EMSSL NCSU, 7/12/19
+ * 
+ * Used to measure dGPS/GPS location data and write to a microSD card. 
+ * 
+ * Uses the following hardware:
+ * - Adafruit Feather 32u4 Adalogger
+ * - Adafruit Ultimate GPS FeatherWing
+ * 
+  ****************************************************************************************************************/
 
 #include <pt.h>               // protothread library
 #include <SD.h>               // SD library
@@ -162,6 +179,9 @@ void setup() {
   //wdt_enable(16384);
 }
 
+//*************************************************************************************************************
+//*******                                           LOOP
+//*************************************************************************************************************
 void loop() {
   wdt_enable(WDTO_8S);                  // enable watchdog timer
   getGPS_sense(&getGpsPT);
