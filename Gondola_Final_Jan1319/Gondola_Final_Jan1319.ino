@@ -25,7 +25,7 @@
 #include <Adafruit_BNO055.h>  // IMU library
 #include <Adafruit_BME280.h>  // Altimeter library
 #include <Adafruit_ADS1015.h> // ADC library
-#include <xbeeAPI.h>          // xbee library (900HP S3B models in API SPI mode)
+#include "xbeeAPI.h"          // xbee library (900HP S3B models in API SPI mode)
 #include <Adafruit_DotStar.h> // controls LED on ItsyBitsyM4 MCU
 //#include <Servo.h>            // controls rudder servo
 
@@ -57,7 +57,7 @@ bool stringGrab_other = false;
 //#define rudderServo A4
 
 // IMU OBJECT DEFINITION
-Adafruit_BNO055 IMU = Adafruit_BNO055(55, BNO055_ADDRESS_B); 
+Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B); 
 //#define imuReset 34     // used on the imu RST pin for a soft reset
 #define imuPower 12     // used on the imu power transistor gate for a hard reset
 uint8_t system_status, self_test_results, system_error; // imu sensor error vars
@@ -1681,10 +1681,10 @@ void setup() {
     usb.println(F("makefiles worked!"));
   }                       
   GPS.begin(9600);
+  GPS.sendCommand(PMTK_ENABLE_WAAS);            // enables dgps reception (higher accuracy in North America)
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); //Getting RMA and GGA data (see http://www.gpsinformation.org/dale/nmea.htm)
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);    //
   GPS.sendCommand(PMTK_API_SET_FIX_CTL_5HZ);    //GPS will refresh 5 times a second (doesn't mean you will get data that often)
-  GPS.sendCommand(PMTK_ENABLE_WAAS);            // enables dgps reception (higher accuracy in North America)
   GPS.sendCommand(PGCMD_NOANTENNA);             // kills the antenna status update           
   useInterrupt(true);                           // uses interrupts to gather incoming data                          
   
@@ -1742,7 +1742,7 @@ void setup() {
 //*******                                           LOOP
 //*************************************************************************************************************
 void loop() {
-  //xbeeCommand_sense(&xbeeCommandPT);
+  xbeeCommand_sense(&xbeeCommandPT);
   
   stringGrabInit_sense(&stringGrabInitPT);
   
