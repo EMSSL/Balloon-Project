@@ -15,6 +15,29 @@
  *  Previous Rev: Gondola_Final_Jun19
  */
 
+
+
+//*************************************************************************************************************
+//*******                            CRITICAL STUFF TO CONFIGURE BEFORE UPLOAD
+//*************************************************************************************************************
+//*************************************************************************************************************
+// SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
+
+#define SENSORMODE_GONDOLA
+//#define SENSORMODE_SAIL
+//#define SENSORMODE_RECEIVER
+
+// SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
+#define XB1_DEST_ADDR (0x0013A200417E38C1)  // DESTINATION XBEE 64-BIT ADDRESS 
+
+//*************************************************************************************************************
+//*******                                 END : CONFIGURATION SECTIONS
+//*************************************************************************************************************
+
+// error checking the configuration macro logic to make the code more error-resistant
+#if (defined(SENSORMODE_GONDOLA) && !defined(SENSORMODE_SAIL) && !defined(SENSORMODE_RECEIVER)) || (!defined(SENSORMODE_GONDOLA) && defined(SENSORMODE_SAIL) && !defined(SENSORMODE_RECEIVER))\
+ || (!defined(SENSORMODE_GONDOLA) && !defined(SENSORMODE_SAIL) && defined(SENSORMODE_RECEIVER))
+
 #include <Wire.h>             // wire library (needed for some sensors)
 #include <SPI.h>              // SPI digital comms library (needed for SD card)
 #include <pt.h>               // protothread library
@@ -29,6 +52,20 @@
 #include <Adafruit_DotStar.h> // controls LED on ItsyBitsyM4 MCU
 //#include <Servo.h>            // controls rudder servo
 
+// sets up xbee mode defs based on the sensormode defined
+#if defined(SENSORMODE_GONDOLA) || defined(SENSORMODE_SAIL)        
+  #define XB1_PRIMARY_MODE (1)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+#elif defined(SENSORMODE_RECEIVER)
+  #define XB1_PRIMARY_MODE (2)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+#endif
+
+// sets up IMU addresses based on the sensormode defined (remote IMU is Add.A, on-board IMU is Add.B)
+#if defined(SENSORMODE_GONDOLA) || defined(SENSORMODE_RECEIVER)
+  Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
+#elif defined(SENSORMODE_SAIL)
+  Adafruit_BNO055 IMU = Adafruit_BNO055(55, BNO055_ADDRESS_A);
+#endif
+
 #define usb Serial            // renames Serial as usb
 #define gps Serial1           // renames Serial2 as gps
 
@@ -41,10 +78,9 @@
 #define XB1_LOC_COMMAND_DIO ('0')           // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
 #define XB1_LOC_CUTDOWN_DIO ('5')           // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
 #define XB1_DEST_COMMAND_DIO ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
-#define XB1_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN
-#define XB1_DEST_ADDR (0x0013A200417E38C1)  // DESTINATION XBEE 64-BIT ADDRESS 
+#define XB1_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
 #define XB1_SPI_CLK (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
-#define XB1_PRIMARY_MODE (1)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+
 #define XB1_MAX_PAYLOAD_SIZE 256                 // cannot exceed NP (256)
 Xbee xbee = Xbee(XB1_SS, XB1_ATTN);         // CONSTRUCTOR FOR XBEE OBJECT
 uint16_t XB1_NP;                            // holds the value for AT property NP (max payload size)
@@ -57,7 +93,7 @@ bool stringGrab_other = false;
 //#define rudderServo A4
 
 // IMU OBJECT DEFINITION
-Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B); 
+ 
 //#define imuReset 34     // used on the imu RST pin for a soft reset
 #define imuPower 12     // used on the imu power transistor gate for a hard reset
 uint8_t system_status, self_test_results, system_error; // imu sensor error vars
@@ -990,9 +1026,13 @@ void commandParse(uint8_t cmd_buffer[], int buffer_size){
 
   switch(command_type)
   {
-    case 0xFF:                        // initiates a cutdown
-      cutdownFunc();
-      break;
+    #ifdef SENSORMODE_GONDOLA
+    
+      case 0xFF:                        // initiates a cutdown
+        cutdownFunc();
+        break;
+    #endif
+    
 //    case 0xFE:                        // sets the rudder angle and kicks rudder control
 //      rudderControl = false;          // into manual mode
 //      rudderAngle_set = command_val;
@@ -1033,7 +1073,7 @@ void getSystemStats(){
 }
 
 //*************************************************************************************************************
-//*******                                           getSystemStats
+//*******                                           parse_systemStats
 //*************************************************************************************************************
 void parse_systemStats(uint8_t sys_stat){
   uint8_t masked_stat;
@@ -1791,15 +1831,38 @@ void loop() {
   GPSwrite_sense(&GPSwritePT);
 //  usb.print(F("13,"));
 //  usb.println(freeMemory());
-  cutdownStart_sense(&cutdownStartPT);
+
+  #ifdef SENSORMODE_GONDOLA
+  
+    cutdownStart_sense(&cutdownStartPT);
 //  usb.print(F("14,"));
 //  usb.println(freeMemory());
-  cutdownReset_sense(&cutdownResetPT);
+    cutdownReset_sense(&cutdownResetPT);
 //  usb.println(F("15,"));
 //  usb.println(freeMemory());
-  cutdown_sense(&cutdownPT);
+    cutdown_sense(&cutdownPT);
+    
+  #endif
   
   wdt_reset();                                                                                                    // watchdog
 }
 
+#else
+
+#include <pt.h>               // protothread library
+#include <Adafruit_DotStar.h> // controls LED on ItsyBitsyM4 MCU
+
+#define usb Serial            // renames Serial as usb
+
+void setup()
+{
+  
+}
+
+void loop()
+{
+  
+}
+
+#endif
  
