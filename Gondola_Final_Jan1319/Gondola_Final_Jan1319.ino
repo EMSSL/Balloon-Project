@@ -24,7 +24,7 @@
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 
 #define SENSORMODE_GONDOLA
-//#define SENSORMODE_SAIL
+#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
 
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
@@ -1852,16 +1852,142 @@ void loop() {
 #include <pt.h>               // protothread library
 #include <Adafruit_DotStar.h> // controls LED on ItsyBitsyM4 MCU
 
-#define usb Serial            // renames Serial as usb
+// On-board dotstar LED stuff
+// There is only one pixel on the board
+#define NUMPIXELS 1 
+//Use these pin definitions for the ItsyBitsy M4
+#define DATAPIN    8
+#define CLOCKPIN   6
+Adafruit_DotStar px(NUMPIXELS, DATAPIN, CLOCKPIN, DOTSTAR_BRG);
 
-void setup()
-{
-  
+// Serial stuff
+#define usb Serial            // renames Serial as usB
+long baudrate_array[15] = {300,1200,2400,4800,9600,19200,38400,57600,74880,115200,230400,250000,500000,1000000,2000000};
+int baud_rate = 0;
+
+// Protothreads stuff
+static struct pt printstuff;
+static struct pt changebaud;
+static struct pt updateDot;
+long updateDot_timer = 0;
+#define updateDot_thresh 10
+long delayText_stamp = 3000;
+#define delayText_thresh 2000
+int line = 0;
+
+String error_message[35] = { 
+  F("                iWs                                 ,W["),
+  F("              W@@W.                              g@@["),
+  F("            i@@@@@s                           g@@@@W"),
+  F("             @@@@@@@W.                       ,W@@@@@@"),
+  F("            ]@@@@@@@@@W.   ,_______.       ,m@@@@@@@@i"),
+  F("           ,@@@@@@@@@@@@W@@@@@@@@@@@@@@mm_g@@@@@@@@@@["),
+  F("           d@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"),
+  F("          i@@@@@@@A*~~~~~VM@@@@@@@@@@Af~~~~V*@@@@@@@@@i"),
+  F("          @@@@@A~          'M@@@@@@A`         'V@@@@@@b"),
+  F("         d@@@*`              Y@@@@f              V@@@@@."),
+  F("        i@@A`                 M@@P                 V@@@b"),
+  F("       ,@@A                   '@@                   !@@@."),
+  F("       W@P                     @[                    '@@W"),
+  F("      d@@            ,         ]!                     ]@@b"),
+  F("     g@@[          ,W@@s       ]       ,W@@s           @@@i"),
+  F("    i@@@[          W@@@@i      ]       W@@@@i          @@@@i"),
+  F("   i@@@@[          @@@@@[      ]       @@@@@[          @@@@@i"),
+  F("  g@@@@@[          @@@@@!      @[      @@@@@[          @@@@@@i"),
+  F(" d@@@@@@@          !@@@P      iAW      !@@@A          ]@@@@@@@i"),
+  F("W@@@@@@@@b          '~~      ,Z Yi      '~~          ,@@@@@@@@@"),
+  F("'*@@@@@@@@s                  Z`  Y.                 ,W@@@@@@@@A"),
+  F("  'M@@@*f**W.              ,Z     Vs               ,W*~~~M@@@f"),
+  F("    'M@    'Vs.          ,z~       'N_           ,Z~     d@P"),
+  F("   M@@@       ~|-__  __z/` ,gmW@@mm_ '+e_.   __=/`      ,@@@@"),
+  F("    'VMW                  g@@@@@@@@@W     ~~~          ,WAf"),
+  F("       ~N.                @@@@@@@@@@@!                ,Z`"),
+  F("         V.               !M@@@@@@@@f                gf-"),
+  F("          'N.               '~***f~                ,Z`"),
+  F("            Vc.                                  _Zf"),
+  F("              ~e_                             ,gY~"),
+  F("                'V=_          -@@D         ,gY~ '"),
+  F("                    ~|=__.           ,__z=~`"),
+  F("                         '~~~*==Y*f~~~"),
+  F(" LOOKS LIKE YOU CRAPPED UP THE CONFIGURATION SECTION, READ THE\n"),
+  F("             DOCUMENATION AND TRY AGAIN PLEASE... ")
+};
+
+
+//*************************************************************************************************************
+//*******                          PROTOTHREAD - printStuff_sense - FAULTY CONFIG
+//*************************************************************************************************************
+static int printStuff_sense(struct pt *pt){
+  PT_BEGIN(pt);
+    PT_WAIT_UNTIL(pt, (millis() - delayText_stamp) >= delayText_thresh);
+    usb.println(error_message[line]);
+    line++;
+  PT_END(pt);
 }
 
+
+//*************************************************************************************************************
+//*******                          PROTOTHREAD - changebuad_sense - FAULTY CONFIG
+//*************************************************************************************************************
+static int changebuad_sense(struct pt *pt){
+  PT_BEGIN(pt);
+    PT_WAIT_UNTIL(pt, (line > 34));
+    line = 0;
+    baud_rate++;
+    if(baud_rate > 14)
+    {
+      baud_rate = 0;
+      delayText_stamp = millis();
+    }
+    else
+    {
+      usb.begin(baudrate_array[baud_rate]);
+      usb.println(F("\n\n\n\n\n\n\n\n\n\n\n\n"));
+    }
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                          PROTOTHREAD - updateDot_sense - FAULTY CONFIG
+//*************************************************************************************************************
+static int updateDot_sense(struct pt *pt){
+  PT_BEGIN(pt);
+    PT_WAIT_UNTIL(pt, (millis() - updateDot_timer) >= updateDot_thresh);
+    int red = random(0,255);
+    int green = random(0,255);
+    int blue = random(0,255);
+    px.setPixelColor(0, red, green, blue); // Set the pixel colors
+    px.show();              // Refresh strip
+    updateDot_timer = millis();
+  PT_END(pt);
+}
+
+
+//*************************************************************************************************************
+//*******                                       SETUP - FAULTY CONFIG
+//*************************************************************************************************************
+void setup()
+{
+  // initialize the dotstar
+  px.begin(); // Initialize pins for output
+  px.show();  // Turn all LEDs off ASAP
+  randomSeed(analogRead(0)); //initialise the random number generator
+
+  PT_INIT(&printstuff);         // Initilize all protothreads
+  PT_INIT(&changebaud);         // Initilize all protothreads
+  PT_INIT(&updateDot);         // Initilize all protothreads
+
+  usb.begin(baudrate_array[baud_rate]);
+}
+
+//*************************************************************************************************************
+//*******                                        LOOP - FAULTY CONFIG
+//*************************************************************************************************************
 void loop()
 {
-  
+  printStuff_sense(&printstuff);
+  updateDot_sense(&updateDot);
+  changebuad_sense(&changebaud);
 }
 
 #endif
