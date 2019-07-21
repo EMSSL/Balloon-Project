@@ -24,11 +24,11 @@
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 
 #define SENSORMODE_GONDOLA
-#define SENSORMODE_SAIL
+//#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
 
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
-#define XB1_DEST_ADDR (0x0013A200417E38C1)  // DESTINATION XBEE 64-BIT ADDRESS 
+#define XB1_DEST_ADDR (0x0013A200417E381A)  // DESTINATION XBEE 64-BIT ADDRESS 
 
 //*************************************************************************************************************
 //*******                                 END : CONFIGURATION SECTIONS
@@ -62,8 +62,10 @@
 // sets up IMU addresses based on the sensormode defined (remote IMU is Add.A, on-board IMU is Add.B)
 #if defined(SENSORMODE_GONDOLA) || defined(SENSORMODE_RECEIVER)
   Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
+  #define imuPower 12     // used on the imu power transistor gate for a hard reset
 #elif defined(SENSORMODE_SAIL)
-  Adafruit_BNO055 IMU = Adafruit_BNO055(55, BNO055_ADDRESS_A);
+  Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_A);
+  #define imuPower 13     // used on the imu power transistor gate for a hard reset
 #endif
 
 #define usb Serial            // renames Serial as usb
@@ -95,7 +97,7 @@ bool stringGrab_other = false;
 // IMU OBJECT DEFINITION
  
 //#define imuReset 34     // used on the imu RST pin for a soft reset
-#define imuPower 12     // used on the imu power transistor gate for a hard reset
+
 uint8_t system_status, self_test_results, system_error; // imu sensor error vars
 
 //SPI communication pins, SCK, MISO, and MOSI are common to all SPI sensors, CS pins are unique to each 
@@ -1662,7 +1664,7 @@ void setupXbee()
 //*************************************************************************************************************
 void setup() {
   wdt_disable(); // this prevents infinite loops from occuring with the watchdog reset                            // watchdog
-  
+  delay(5000);    // used to read setup debug code
     //calculates maximum string memory usage, and if it will fit on the arduino, reserves the memory 
    //this prevents "foaming" of the heap memory due to fragmentation, and helps to prevent stack overflow 
   unsigned int gpsTotalBytes = 350*gpsWriteThresh;
