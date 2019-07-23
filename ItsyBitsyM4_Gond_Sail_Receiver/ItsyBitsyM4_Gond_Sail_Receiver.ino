@@ -1945,11 +1945,10 @@
     #define altPower 11           //altimeter power transistor pin
 
     //PacketGrab1 required vars
-    uint8_t packetGrab_initial_1[300];    // char array for uncompressed stringGrab data
-    uint8_t packetGrab_decompressed_1[600]; // char array for compressed stringGrabdata
-    uint8_t packetGrab_decoded_1[600];    // char array for xbee sendPayload
+    uint8_t packetGrab_decompressed[600]; // char array for compressed stringGrabdata
+    uint8_t packetGrab_xbee;            // designates the xbee number where the packetGrab data came from 
     
-    uint16_t compressed_size;           // how long the stringGrab_compressed array is
+    uint16_t decompressed_size;           // how long the packetGrab_decompressed array is
     
     String OtherflushTotal_1 = "";    // string object for sensor data (temporary storage)
     String GPSflushTotal_1 = "";      // string object for GPS data (temporary storage)
@@ -1959,18 +1958,41 @@
 
     //PacketGrab2 required vars
     #ifdef XB2_DEST_ADDR
-      uint8_t packetGrab_initial_1[300];    // char array for uncompressed stringGrab data
-      uint8_t packetGrab_decompressed_1[600]; // char array for compressed stringGrabdata
-      uint8_t packetGrab_decoded_1[600];    // char array for xbee sendPayload
-      
-      uint16_t compressed_size;           // how long the stringGrab_compressed array is
-      
-      String OtherflushTotal_1 = "";    // string object for sensor data (temporary storage)
-      String GPSflushTotal_1 = "";      // string object for GPS data (temporary storage)
-      String packetGrab_temp_1 = "";    // used for storing the temp data prior to compressing and chopping
+      String OtherflushTotal_2 = "";    // string object for sensor data (temporary storage)
+      String GPSflushTotal_2 = "";      // string object for GPS data (temporary storage)
+      String packetGrab_temp_2 = "";    // used for storing the temp data prior to binning
       File OtherData_2;                 // SD file for sensor data
       File GPSdata_2;                   // SD file for GPS data
     #endif
+
+    // structs to house gondola and sail characteristics
+    struct acc
+    {
+      String x;
+      String y;
+      String z;
+    }
+    struct gyro
+    {
+      String x;
+      String y;
+      String z;
+    }
+    struct mag
+    {
+      String x;
+      String y;
+      String z;
+    }
+    struct 
+    struct One 
+    {
+      String gps_lat;
+      String gps_long;
+      String gps_elev;
+      String gps_fixqual;
+      String other_ 
+    }
        
     bool isError = false;         // is there an error?
     bool sdError = false;         // is there an SD-specific error?
@@ -2000,6 +2022,111 @@
     uint8_t fatalResetCount = 0;      // tracks the number of reset attempts, used to initiate watchdog reset
 
 
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD packetGrab1_sense
+    //*************************************************************************************************************
+    static int packetGrab1_sense(struct pt *pt){
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt, xbee1.data_received_length);
+        packetGrab_xbee = 1;
+        packetGrab_init_1 = packetGrab();
+        if(packetGrab_init_1)
+        {
+          xbee1.data_received_length = 0;
+        }
+        else
+        {
+          packetGrab_temp_1 = "";
+        } 
+      PT_END(pt);
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD packetGrab2_sense
+    //*************************************************************************************************************
+    static int packetGrab2_sense(struct pt *pt){
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt, xbee2.data_received_length);
+        packetGrab_xbee = 2;
+        packetGrab_init_2 = packetGrab();
+        if(packetGrab_init_2)
+        {
+          xbee2.data_received_length = 0;
+        }
+        else
+        {
+          packetGrab_temp_2 = "";
+        } ;
+      PT_END(pt);
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD packetParse1_sense
+    //*************************************************************************************************************
+    static int packetParse1_sense(struct pt *pt){
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt, xbee2.data_received_length);
+        packetGrab_xbee = 2;
+        packetGrab_init_2 = packetGrab();
+        if(packetGrab_init_2)
+        {
+          xbee2.data_received_length = 0;
+        }
+        else
+        {
+          packetGrab_temp_2 = "";
+        } ;
+      PT_END(pt);
+    }
+
+    //*************************************************************************************************************
+    //*******                                           packetGrab
+    //*************************************************************************************************************
+    void packetGrab()
+    {
+      bool concat_bool;           // used to see if the concat() function worked
+      bool rtn = true;            // used to tell if the function worked
+      uint8_t restart_count;      // used to track the number of attempted concat() attempts 
+      if(packetGrab_xbee == 1)                                    // pass the respective xbee buffer and bufferlength
+      {                                                           // to the decompression function
+        decompressed_size = decompress(xbee1.data_received, packetGrab_decompressed, xbee1.data_received_length);
+        matchCaseDecompress(packetGrab_decompressed, decompressed_size);  // then decode to relevant data streams
+        
+        for(int i = 0; i < decompressed_size, i++)
+        {
+          restart_count = 0;        // reset the restart counter
+          concat_bool = false;      // reset the concat_bool to ensure the while loop works
+          while((!concat_bool) && (restart_count < 251))    // kicks out if the concat worked or the max concat
+          {                                                 // attempts is reached
+            concat_bool = packetGrab_temp_1.concat(packetGrab_decompressed[i]);
+            restart_count++;
+          }
+          rtn &= concat_bool; // bitwise AND rtn and concat_bool to accumulate any error into a function error
+        }
+      }                                                           //
+      #ifdef XB2_DEST_ADDR
+        else if (packetGrab_xbee == 2)                              //
+        {                                                           //
+          decompressed_size = decompress(xbee2.data_received, packetGrab_decompressed, xbee2.data_received_length);
+          matchCaseDecompress(packetGrab_decompressed, decompressed_size);  // then decode to relevant data streams
+
+          for(int i = 0; i < decompressed_size, i++)
+          {
+            restart_count = 0;
+            concat_bool = false;
+            while((!concat_bool) && (restart_count < 251))    // allows 250 attempts to concatenate each char of the
+            {                                                 // decompressed array into a temporary string
+              concat_bool = packetGrab_temp_2.concat(packetGrab_decompressed[i]);
+              restart_count++;
+            }
+            rtn &= concat_bool; // bitwise AND rtn and concat_bool to accumulate any error into a function error
+          }
+        }                                                           //
+      #endif
+      else return false;                                                //
+      return rtn;
+    }
+    
     //*************************************************************************************************************
     //*******                                           MakeFiles
     //*************************************************************************************************************
