@@ -1877,7 +1877,13 @@
       wdt_reset();    // watchdog
     }
 
-  #else
+
+
+
+   #elif defined(SENSORMODE_RECEIVER)
+
+
+  
 /**************************************************************************************************************
  * *************************************************************************************************************
  * *************************************************************************************************************
@@ -2010,6 +2016,10 @@
       String OtherflushTotal = "";    // string member for sensor data (temporary storage)
       String GPSflushTotal = "";      // string member for GPS data (temporary storage)
       String packetGrab_temp = "";    // used for storing the temp data prior to compressing and chopping
+      int gga;                        // used for storing gps sentence existence
+      int rmc;                        // used for storing gps sentence existence
+      bool newGps;                    // used for storing a control bool for new gps sentences
+      bool newOther;                  // used for storing a control bool for new othersensor strings
       File OtherData;                 // SD file for sensor data
       File GPSdata;                   // SD file for GPS data
       uint8_t Name_space;             // space used to align name string in printThings()
@@ -2024,6 +2034,12 @@
       uint8_t temperature_space;      // space used to align temperature string in printThings()
       uint8_t humidity_space;         // space used to align humidity string in printThings()
       uint8_t pitot_space;            // space used to align pitot string in printThings()
+      static struct pt packetGrab_PT;        // protothread for the initial packetGrab
+      static struct pt packetParse_PT;       // protothread for the packetparsing function
+      static struct pt gpsParse_PT;          // protothread for parsing the GPS sentence and modifying struct members
+      static struct pt otherParse_PT;        // protothread for parsing the othersensor sentence and modifying struct members
+      static struct pt gpsWrite_PT;          // protothread for writing the GPS sentence to the appropriate SD file
+      static struct pt otherWrite_PT;        // protothread for writing the othersensor sentence to the appropriate SD file
     }thing;
 
     thing one;                // initialize the first struct
@@ -2072,41 +2088,39 @@
     bool makeFileError = false;   // did makeFiles() fail?
     bool fatalError = false;      // is there a fatal error?
 
-    // PROTOTHREAD GLOBALS
-    static struct pt errorFixPT;
-    static struct pt fatalFixPT;
-    static struct pt writePT;
-    static struct pt GPSwritePT;
-    static struct pt sdFixPT;
-    static struct pt fileFixPT;
+//    // PROTOTHREAD GLOBALS
+//    static struct pt packetGrab_PT1;        // protothread for the initial packetGrab
+//    static struct pt packetParse_PT1;       // protothread for the packetparsing function
+//    static struct pt gpsParse_PT1;          // protothread for parsing the GPS sentence and modifying struct members
+//    static struct pt otherParse_PT1;        // protothread for parsing the othersensor sentence and modifying struct members
+//    static struct pt gpsWrite_PT1;          // protothread for writing the GPS sentence to the appropriate SD file
+//    static struct pt otherWrite_PT1;        // protothread for writing the othersensor sentence to the appropriate SD file
+//    #ifdef XB2_DEST_ADDR
+//      static struct pt packetGrab_PT2;        // protothread for the initial packetGrab
+//      static struct pt packetParse_PT2;       // protothread for the packetparsing function
+//      static struct pt gpsParse_PT2;          // protothread for parsing the GPS sentence and modifying struct members
+//      static struct pt otherParse_PT2;        // protothread for parsing the othersensor sentence and modifying struct members
+//      static struct pt gpsWrite_PT2;          // protothread for writing the GPS sentence to the appropriate SD file
+//      static struct pt otherWrite_PT2;        // protothread for writing the othersensor sentence to the appropriate SD file
+//    #endif
+    static struct pt printHud_PT;
     
-    static struct pt packetGrabPT_1;
-    static struct pt packetGrabPT_2;
-    static struct pt stringGrabGpsPT;
-    static struct pt stringGrabOtherPT;
-    static struct pt stringChopPT;
-    static struct pt xbeeCommandPT;
-
     // TIMING THRESHOLD CONSTANTS FOR TIME-BASED EVENT HANDLING
-    #define writeThresh 2                   // number of successful data pulls before writing to SD
-    #define gpsWriteThresh 5                // number of successful gps pulls before writing to SD
-
+    #define printHud_Thresh 1000
+    
     // TIME_STAMPS FOR TIME-BASED EVENT HANDLING
     long errorFix_Stamp = 0;      // timestamp used to track when to call non-fatal error fix checks
-    uint8_t writeCount = 0;           // tracks the number of successful IMU pulls before writing to SD
-    uint8_t GPSwriteCount = 0;        // tracks the number of successful GPS pulls before writing to SD
-    uint8_t fatalResetCount = 0;      // tracks the number of reset attempts, used to initiate watchdog reset
-
+    long printHud_Stamp = 0;
 
     //*************************************************************************************************************
-    //*******                                   PROTOTHREAD packetGrab1_sense
+    //*******                                   PROTOTHREAD packetGrab_sense
     //*************************************************************************************************************
-    static int packetGrab1_sense(struct pt *pt, Xbee *xbee, thing *thisThing){
-      PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, xbee->data_received_length);
+    static int packetGrab_sense(Xbee *xbee, thing *thisThing){
+      PT_BEGIN(&(thisThing->packetGrab_PT));
+      PT_WAIT_UNTIL(&(thisThing->packetGrab_PT), xbee->data_received_length);
         bool packetGrabbed;
-        packedGrabbed = packetGrab(thisThing,xbee);
-        if(packedGrabbed)
+        packetGrabbed = packetGrab(thisThing,xbee);
+        if(packetGrabbed)
         {
           xbee->clearBuffers();
         }
@@ -2114,20 +2128,171 @@
         {
           thisThing->packetGrab_temp = "";
         } 
-      PT_END(pt);
+      PT_END(&(thisThing->packetGrab_PT));
     }
 
     //*************************************************************************************************************
-    //*******                                   PROTOTHREAD packetParse1_sense
+    //*******                                   PROTOTHREAD packetParse_sense
     //*************************************************************************************************************
-    static int packetParse1_sense(struct pt *pt, thing *thisThing){
-      PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, thisThing->packetGrab_temp.length());
+    static int packetParse_sense(thing *thisThing){
+      PT_BEGIN(&(thisThing->packetParse_PT));
+      PT_WAIT_UNTIL(&(thisThing->packetParse_PT), thisThing->packetGrab_temp.length());
+          thisThing->gga = thisThing->packetGrab_temp.indexOf("$GPGGA");  // search for the index of the argument
+          thisThing->rmc = thisThing->packetGrab_temp.indexOf("$GPRMC");  // returns -1 if the argument can't be found
+          if((thisThing->gga > -1) || (thisThing->rmc > -1))  // if either gga or rmc exists in the temp string,
+          {
+            thisThing->GPSflushTotal = thisThing->packetGrab_temp;  // store the sentence in the gpsflushtotal string
+            thisThing->packetGrab_temp = "";      // empty the temp string to prevent the protothread from activating
+            thisThing->newGps = true;
+          }
+          else
+          {
+            thisThing->OtherflushTotal = thisThing->packetGrab_temp;  // store the sentence in the otherflushtotal string
+            thisThing->packetGrab_temp = "";      // empty the temp string to prevent the protothread from activating
+            thisThing->newOther = true;
+          } 
+      PT_END(&(thisThing->packetParse_PT));
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD gpsParse_sense
+    //*************************************************************************************************************
+    static int gpsParse_sense(thing *thisThing){
+      PT_BEGIN(&(thisThing->gpsParse_PT));
+      PT_WAIT_UNTIL(&(thisThing->gpsParse_PT), thisThing->newGps);
+        if(thisThing->rmc > -1)
+        {
+          uint8_t preTime = thisThing->GPSflushTotal.indexOf(",");
+          uint8_t prethrowaway1 = thisThing->GPSflushTotal.indexOf("," , preTime+1);
+          uint8_t prelat = thisThing->GPSflushTotal.indexOf("," , prethrowaway1+1);
+          uint8_t prelatSuffix = thisThing->GPSflushTotal.indexOf("," , prelat+1);
+          uint8_t prelon = thisThing->GPSflushTotal.indexOf("," , prelatSuffix+1);
+          uint8_t prelonSuffix = thisThing->GPSflushTotal.indexOf("," , prelon+1);
+          uint8_t postlonSuffix = thisThing->GPSflushTotal.indexOf("," , prelonSuffix+1);
         
-          packetGrab_temp_2 = "";
-        } ;
+          thisThing->lat = thisThing->GPSflushTotal.substring(prelat+1,prelon);
+          thisThing->lon = thisThing->GPSflushTotal.substring(prelon+1,postlonSuffix);
+        }
+        else
+        {
+          uint8_t preTime = thisThing->GPSflushTotal.indexOf(",");
+          uint8_t prelat = thisThing->GPSflushTotal.indexOf("," , preTime+1);
+          uint8_t prelatSuffix = thisThing->GPSflushTotal.indexOf("," , prelat+1);
+          uint8_t prelon = thisThing->GPSflushTotal.indexOf("," , prelatSuffix+1);
+          uint8_t prelonSuffix = thisThing->GPSflushTotal.indexOf("," , prelon+1);
+          uint8_t preFixData = thisThing->GPSflushTotal.indexOf("," , prelonSuffix+1);
+          uint8_t prethrowaway1 = thisThing->GPSflushTotal.indexOf("," , preFixData+1);
+          uint8_t prethrowaway2 = thisThing->GPSflushTotal.indexOf("," , prethrowaway1+1);
+          uint8_t preElev = thisThing->GPSflushTotal.indexOf("," , prethrowaway2+1);
+          uint8_t preElevSuffix = thisThing->GPSflushTotal.indexOf("," , preElev+1);
+          uint8_t postElevSuffix = thisThing->GPSflushTotal.indexOf("," , preElevSuffix+1);
+        
+          thisThing->lat = thisThing->GPSflushTotal.substring(prelat+1,prelon);
+          thisThing->lon = thisThing->GPSflushTotal.substring(prelon+1,preFixData);
+          thisThing->elev = thisThing->GPSflushTotal.substring(preElev+1,postElevSuffix);
+        }
+        thisThing->newGps = false;
+      PT_END(&(thisThing->gpsParse_PT));
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD otherParse_sense
+    //*************************************************************************************************************
+    static int otherParse_sense(thing *thisThing){
+      PT_BEGIN(&(thisThing->otherParse_PT));
+      PT_WAIT_UNTIL(&(thisThing->otherParse_PT), thisThing->newOther);
+        uint8_t pretimeadd = thisThing->OtherflushTotal.indexOf(",");             // finds the locations on the 
+        uint8_t preElev = thisThing->OtherflushTotal.indexOf("," , pretimeadd+1); // string for each datafield
+        uint8_t preAccX = thisThing->OtherflushTotal.indexOf(":");                //
+        uint8_t preAccY = thisThing->OtherflushTotal.indexOf("," , preAccX+1);    //
+        uint8_t preAccZ = thisThing->OtherflushTotal.indexOf("," , preAccY+1);    //
+                                                                                  //
+        uint8_t preGyroX = thisThing->OtherflushTotal.indexOf("," , preAccZ+1);   //
+        uint8_t preGyroY = thisThing->OtherflushTotal.indexOf("," , preGyroX+1);  //
+        uint8_t preGyroZ = thisThing->OtherflushTotal.indexOf("," , preGyroY+1);  //
+                                                                                  //
+        uint8_t preMagX = thisThing->OtherflushTotal.indexOf("," , preGyroZ+1);   //
+        uint8_t preMagY = thisThing->OtherflushTotal.indexOf("," , preMagX+1);    //
+        uint8_t preMagZ = thisThing->OtherflushTotal.indexOf("," , preMagY+1);    //
+                                                                                  //
+        uint8_t preEulX = thisThing->OtherflushTotal.indexOf("," , preMagZ+1);    //
+        uint8_t preEulY = thisThing->OtherflushTotal.indexOf("," , preEulX+1);    //
+        uint8_t preEulZ = thisThing->OtherflushTotal.indexOf("," , preEulY+1);    //
+                                                                                  //
+        uint8_t preGravX = thisThing->OtherflushTotal.indexOf("," , preEulZ+1);   //
+        uint8_t preGravY = thisThing->OtherflushTotal.indexOf("," , preGravX+1);  //
+        uint8_t preGravZ = thisThing->OtherflushTotal.indexOf("," , preGravY+1);  //
+                                                                                  //
+        uint8_t preTemp = thisThing->OtherflushTotal.indexOf("," , preGravZ+1);   //
+        uint8_t prePressure = thisThing->OtherflushTotal.indexOf("," , preTemp+1);  //
+        uint8_t preHumidity = thisThing->OtherflushTotal.indexOf("," , prePressure+1);  //
+        uint8_t preAltAltitude = thisThing->OtherflushTotal.indexOf("," , preHumidity+1); //
+        uint8_t prePitot = thisThing->OtherflushTotal.indexOf("," , preAltAltitude+1);  //
+        uint8_t postPitot = thisThing->OtherflushTotal.indexOf("--");                   //
+      
+          // parses up the datafields and assigns them to the corresponding struct members
+        thisThing->acc.x = thisThing->OtherflushTotal.substring(preAccX+1,preAccY);
+        thisThing->acc.y = thisThing->OtherflushTotal.substring(preAccY+1,preAccZ);
+        thisThing->acc.z = thisThing->OtherflushTotal.substring(preAccZ+1,preGyroX);
+      
+        thisThing->gyro.x = thisThing->OtherflushTotal.substring(preGyroX+1,preGyroY);
+        thisThing->gyro.y = thisThing->OtherflushTotal.substring(preGyroY+1,preGyroZ);
+        thisThing->gyro.z = thisThing->OtherflushTotal.substring(preGyroZ+1,preMagX);
+      
+        thisThing->mag.x = thisThing->OtherflushTotal.substring(preMagX+1,preMagY);
+        thisThing->mag.y = thisThing->OtherflushTotal.substring(preMagY+1,preMagZ);
+        thisThing->mag.z = thisThing->OtherflushTotal.substring(preMagZ+1,preEulX);
+      
+        thisThing->eul.x = thisThing->OtherflushTotal.substring(preEulX+1,preEulY);
+        thisThing->eul.y = thisThing->OtherflushTotal.substring(preEulY+1,preEulZ);
+        thisThing->eul.z = thisThing->OtherflushTotal.substring(preEulZ+1,preTemp);
+      
+        thisThing->pressure = thisThing->OtherflushTotal.substring(prePressure+1,preHumidity);
+        thisThing->temperature = thisThing->OtherflushTotal.substring(preTemp+1,prePressure);
+        thisThing->humidity = thisThing->OtherflushTotal.substring(preHumidity+1,preAltAltitude);
+        thisThing->pitot = thisThing->OtherflushTotal.substring(prePitot+1,postPitot);
+        
+        thisThing->newOther = false;  // resets the newOther flag to prevent retriggering the protothread
+      PT_END(&(thisThing->otherParse_PT));
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD gpsWrite_sense
+    //*************************************************************************************************************
+    static int gpsWrite_sense(thing *thisThing){
+      PT_BEGIN(&(thisThing->gpsWrite_PT));
+      PT_WAIT_UNTIL(&(thisThing->gpsWrite_PT), thisThing->newGps);
+        thisThing->GPSdata.print(thisThing->GPSflushTotal);
+        thisThing->GPSdata.flush();   
+      PT_END(&(thisThing->gpsWrite_PT));
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD otherWrite_sense
+    //*************************************************************************************************************
+    static int otherWrite_sense(thing *thisThing){
+      PT_BEGIN(&(thisThing->otherWrite_PT));
+      PT_WAIT_UNTIL(&(thisThing->otherWrite_PT), thisThing->newOther);
+        thisThing->OtherData.print(thisThing->OtherflushTotal);
+        thisThing->OtherData.flush();   
+      PT_END(&(thisThing->otherWrite_PT));
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD HUD_sense
+    //*************************************************************************************************************
+    static int HUD_sense(struct pt *pt){ // prints the heads up display
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt, millis() - printHud_Stamp >= printHud_Thresh);
+        #ifndef XB2_DEST_ADDR
+          printThings(&one);
+        #else
+          printThings(&one,&two);
+        #endif
+        printHud_Stamp = millis();
       PT_END(pt);
     }
+
 
     //*************************************************************************************************************
     //*******                                           packetGrab
@@ -3268,16 +3433,82 @@
         usb.println(F("      || "));            // print the rest of the line
     }                                
 
-
+    void initializeProtothreads(thing *thisThing)
+    {
+      PT_INIT(&(thisThing->packetGrab_PT));     // initialize the protothread for the initial packetGrab
+      PT_INIT(&(thisThing->packetParse_PT));    // initialize the protothread for the packetparsing function
+      PT_INIT(&(thisThing->gpsParse_PT));       // initialize the protothread for parsing the GPS sentence and modifying struct members
+      PT_INIT(&(thisThing->otherParse_PT));     // initialize the protothread for parsing the othersensor sentence and modifying struct members
+      PT_INIT(&(thisThing->gpsWrite_PT));       // initialize the protothread for writing the GPS sentence to the appropriate SD file
+      PT_INIT(&(thisThing->otherWrite_PT));     // initialize the protothread for writing the other sensors sentence to the appropriate SD file
+    }
+    
+    //*************************************************************************************************************
+    //*******                              Watchdog Timer Stuff (SAMD51)
+    //*************************************************************************************************************
+    // periodCyc goes in increments of 8*2^n up to 16384 (integer n starts at zero)
+    // fails to initialize if periodCyc doesn't match specific values
+    bool wdt_enable(int periodCyc)
+    {  
+      switch(periodCyc)   // operates in fall-through mode, returns false if periodCyc doesnt match
+      {
+        case 8:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC8;
+        case 16:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC16;
+        case 32:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC32;
+        case 64:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC64;
+        case 128:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC128;
+        case 256:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC256;
+        case 512:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC512;
+        case 1024:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC1024;
+        case 2048:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC2048;
+        case 4096:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC4096;
+        case 8192:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC8192;
+        case 16384:
+          REG_WDT_CONFIG = WDT_CONFIG_PER_CYC16384;
+        default:
+          return false;
+      }
+    
+      REG_WDT_CTRLA = WDT_CTRLA_ENABLE;           // enable WDT
+      while(WDT->SYNCBUSY.bit.ENABLE)             // wait for bit to sync
+      {}  
+    
+      return true;
+    }
+    
+    void wdt_disable()  // disables the WDT (does not work if WDT->CTRLA.bit.ALWAYSON = 1)
+    {
+      WDT->CTRLA.bit.ENABLE = 0;          // disable the watchdog
+      while(WDT->SYNCBUSY.bit.ENABLE)     // wait for the ENABLE bit to syncronize
+      {}
+    }
+    
+    void wdt_reset()  // high performance WDT clear funtion
+    {
+      if(!WDT->SYNCBUSY.bit.CLEAR)            // if not syncronizing from last CLEAR,
+      {                                       //
+        REG_WDT_CLEAR = WDT_CLEAR_CLEAR_KEY;  // write clear key to CLEAR register
+      }
+    }
+    
+    
     //*************************************************************************************************************
     //*******                                           SETUP
     //*************************************************************************************************************
     void setup() {
       wdt_disable(); // this prevents infinite loops from occuring with the watchdog reset                            // watchdog
       delay(5000);    // used to read setup debug code
-      
-      GPSflushTotal.reserve(600);       // Reserves a block of SRAM for the String variables (to prevent memory fragmentation)
-      OtherflushTotal.reserve(600);   //
 
       usb.begin(115200);
       usb.println(F("INITIALIZING"));
@@ -3336,23 +3567,11 @@
       else{
         usb.println(F("makefiles worked!"));
       }                       
-      
-    
-      PT_INIT(&errorFixPT);         //
-      PT_INIT(&fatalFixPT);         //
-      
-      PT_INIT(&writePT);            //
-      PT_INIT(&GPSwritePT);         // Initilize all protothreads
-      
-      PT_INIT(&sdFixPT);            //
-      PT_INIT(&fileFixPT);          //
-      
-      PT_INIT(&stringGrabInitPT);   //
-      PT_INIT(&stringGrabGpsPT);    //
-      PT_INIT(&stringGrabOtherPT);  //
-      PT_INIT(&stringChopPT);       //
-      PT_INIT(&xbeeCommandPT);      //
-      //PT_INIT(&rudderAnglePT);      // not implemented yet, used with Rudder Class
+
+      initializeProtothreads(&one);
+      #ifdef XB2_DEST_ADDR
+        initializeProtothreads(&two);
+      #endif
     
       usb.println(F("Setup complete, entering loop!"));
     
@@ -3385,7 +3604,12 @@
       wdt_reset();    // watchdog
     }
 
+
+
+  #endif
 #else
+
+
 
 /**************************************************************************************************************
  * *************************************************************************************************************
