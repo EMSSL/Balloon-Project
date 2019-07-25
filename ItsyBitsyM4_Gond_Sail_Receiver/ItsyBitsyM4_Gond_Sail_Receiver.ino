@@ -1899,41 +1899,41 @@
     
     #define usb Serial            // renames Serial as usb
     
-    //Xbee1 OBJECT DEFINITION
-    #define XB1_SS (5)                          // M4 PIN FOR XBEE SPI SLAVE SELECT
-    #define XB1_ATTN (7)                        // M4 PIN FOR XBEE ATTN 
-    #define XB1_CMD (9)                         // M4 PIN NUMBER FOR COMMAND SIGNAL
-    #define XB1_LOC_COMMAND_DIO ('0')           // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
-    #define XB1_LOC_CUTDOWN_DIO ('5')           // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
-    #define XB1_DEST_COMMAND_DIO ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
-    #define XB1_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
-    #define XB1_SPI_CLK (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
-    #define XB1_PRIMARY_MODE (2)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
-    #define XB1_MAX_PAYLOAD_SIZE 256                 // cannot exceed NP (256)
-    Xbee xbee1 = Xbee(XB1_SS, XB1_ATTN);         // CONSTRUCTOR FOR XBEE OBJECT
-    uint16_t XB1_NP;                            // holds the value for AT property NP (max payload size)
-    bool packetGrab_init_1 = false;
-    bool packetGrab_decomp_1 = false;
-    bool packetGrab_decode_1 = false;
-
-    //Xbee2 OBJECT DEFINITION
-    #ifdef XB2_DEST_ADDR
-      #define XB2_SS (10)                          // M4 PIN FOR XBEE SPI SLAVE SELECT
-      #define XB2_ATTN (A3)                        // M4 PIN FOR XBEE ATTN 
-      #define XB2_CMD (A2)                         // M4 PIN NUMBER FOR COMMAND SIGNAL
-      #define XB2_LOC_COMMAND_DIO ('0')           // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
-      #define XB2_LOC_CUTDOWN_DIO ('5')           // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
-      #define XB2_DEST_COMMAND_DIO ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
-      #define XB2_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
-      #define XB2_SPI_CLK (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
-      #define XB2_PRIMARY_MODE (2)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
-      #define XB2_MAX_PAYLOAD_SIZE 256                 // cannot exceed NP (256)
-      Xbee xbee2 = Xbee(XB2_SS, XB2_ATTN);         // CONSTRUCTOR FOR XBEE OBJECT
-      uint16_t XB2_NP;                            // holds the value for AT property NP (max payload size)
-      bool packetGrab_init_2 = false;
-      bool packetGrab_decomp_2 = false;
-      bool packetGrab_decode_2 = false;
-    #endif
+//    //Xbee1 OBJECT DEFINITION
+//    #define XB1_SS (5)                          // M4 PIN FOR XBEE SPI SLAVE SELECT
+//    #define XB1_ATTN (7)                        // M4 PIN FOR XBEE ATTN 
+//    #define XB1_CMD (9)                         // M4 PIN NUMBER FOR COMMAND SIGNAL
+//    #define XB1_LOC_COMMAND_DIO ('0')           // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
+//    #define XB1_LOC_CUTDOWN_DIO ('5')           // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
+//    #define XB1_DEST_COMMAND_DIO ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
+//    #define XB1_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
+//    #define XB1_SPI_CLK (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
+//    #define XB1_PRIMARY_MODE (2)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+//    #define XB1_MAX_PAYLOAD_SIZE 256                 // cannot exceed NP (256)
+//    Xbee xbee1 = Xbee(XB1_SS, XB1_ATTN);         // CONSTRUCTOR FOR XBEE OBJECT
+//    uint16_t XB1_NP;                            // holds the value for AT property NP (max payload size)
+//    bool packetGrab_init_1 = false;
+//    bool packetGrab_decomp_1 = false;
+//    bool packetGrab_decode_1 = false;
+//
+//    //Xbee2 OBJECT DEFINITION
+//    #ifdef XB2_DEST_ADDR
+//      #define XB2_SS (10)                          // M4 PIN FOR XBEE SPI SLAVE SELECT
+//      #define XB2_ATTN (A3)                        // M4 PIN FOR XBEE ATTN 
+//      #define XB2_CMD (A2)                         // M4 PIN NUMBER FOR COMMAND SIGNAL
+//      #define XB2_LOC_COMMAND_DIO ('0')           // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
+//      #define XB2_LOC_CUTDOWN_DIO ('5')           // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
+//      #define XB2_DEST_COMMAND_DIO ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
+//      #define XB2_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
+//      #define XB2_SPI_CLK (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
+//      #define XB2_PRIMARY_MODE (2)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+//      #define XB2_MAX_PAYLOAD_SIZE 256                 // cannot exceed NP (256)
+//      Xbee xbee2 = Xbee(XB2_SS, XB2_ATTN);         // CONSTRUCTOR FOR XBEE OBJECT
+//      uint16_t XB2_NP;                            // holds the value for AT property NP (max payload size)
+//      bool packetGrab_init_2 = false;
+//      bool packetGrab_decomp_2 = false;
+//      bool packetGrab_decode_2 = false;
+//    #endif
     
     //SPI communication pins, SCK, MISO, and MOSI are common to all SPI sensors, CS pins are unique to each 
     // SPI sensor.
@@ -1959,6 +1959,24 @@
     #define LAT_SIZE = 11;            //
     #define LON_SIZE = 12;            //
     #define ELEV_SIZE = 8;            //
+    #define FLUSHTOTAL_SIZE 600       //
+    #define FLUSHTOTAL_SIZE 600       //
+
+    typedef struct    // struct XbeeSettings : used to set up each xbee
+    {
+      uint64_t destination_address;        // 64 BIT UNIIQUE DESTINATION XBEE ADDRESS
+      uint8_t ss_pin;                 // PIN FOR XBEE SPI SLAVE SELECT
+      uint8_t attn_pin;               // PIN FOR XBEE ATTN 
+      uint8_t cmd_pin;                // PIN NUMBER FOR COMMAND SIGNAL
+      //uint8_t cutdown_interrupt;      // PIN NUMBER FOR CUTDOWN INTERRUPT (NOT USED HERE)
+      char local_cmd_dio;             // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
+      char local_cutdown_dio;         // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
+      char destination_cmd_dio;       // DIO NUMBER FOR DESTINATION COMMAND PIN
+      char destination_cutdown_dio;   // DIO NUMBER FOR DESTINATION CUTDOWN 
+      long spi_clk_freq_hz;           // SPI BUS FREQUENCY FOR XBEE DATA
+      uint8_t primary_mode;           // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+      int max_payload_size_bytes;     // cannot exceed NP (256)
+    }XbeeSettings;
     
     typedef struct  // struct ThreeAxis : used to store the x,y,z components of data
     {
@@ -2008,11 +2026,45 @@
       uint8_t pitot_space;            // space used to align pitot string in printThings()
     }thing;
 
-    thing one;                // 
-    #ifdef XB2_DEST_ADDR      //  Initialize the thing structs
-    thing two;                //  uses preprocessor to know whether to declare one or two
-    #endif                    //
+    thing one;                // initialize the first struct
+    XbeeSettings xbee_set1 =  // initialize the first xbeesettings struct for xbee1
+    {
+      XB1_DEST_ADDR,
+      5,
+      7,
+      9,
+      //0, CUTDOWN INTERRUPT
+      '0',
+      '5',
+      '0',
+      '5',
+      3000000,
+      2,
+      256
+    };
+    uint16_t XB1_NP;
+    Xbee xbee1 = Xbee(xbee_set1.ss_pin, xbee_set1.attn_pin);  // initialize the first xbee
 
+    #ifdef XB2_DEST_ADDR            // if the 2nd xbee addr is fully described
+      thing two;                    // initialize the second struct
+      XbeeSettings xbee_set2 =      // initialize the second xbee settings struct
+      {
+        XB2_DEST_ADDR,
+        10,
+        A2,
+        A3,
+        //0, CUTDOWN INTERRUPT
+        '0',
+        '5',
+        '0',
+        '5',
+        3000000,
+        2,
+        256
+      };
+      uint16_t XB2_NP;
+      Xbee xbee2 = Xbee(xbee_set2.ss_pin, xbee_set2.attn_pin);  // initialize the second xbee
+    #endif
 
     // ERROR DETECTION GLOBALS
     bool isError = false;         // is there an error?
@@ -2028,7 +2080,8 @@
     static struct pt sdFixPT;
     static struct pt fileFixPT;
     
-    static struct pt stringGrabInitPT;
+    static struct pt packetGrabPT_1;
+    static struct pt packetGrabPT_2;
     static struct pt stringGrabGpsPT;
     static struct pt stringGrabOtherPT;
     static struct pt stringChopPT;
@@ -2048,55 +2101,29 @@
     //*************************************************************************************************************
     //*******                                   PROTOTHREAD packetGrab1_sense
     //*************************************************************************************************************
-    static int packetGrab1_sense(struct pt *pt){
+    static int packetGrab1_sense(struct pt *pt, Xbee *xbee, thing *thisThing){
       PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, xbee1.data_received_length);
-        packetGrab_xbee = 1;
-        packetGrab_init_1 = packetGrab(&one);
-        if(packetGrab_init_1)
+      PT_WAIT_UNTIL(pt, xbee->data_received_length);
+        bool packetGrabbed;
+        packedGrabbed = packetGrab(thisThing,xbee);
+        if(packedGrabbed)
         {
-          xbee1.data_received_length = 0;
+          xbee->clearBuffers();
         }
         else
         {
-          packetGrab_temp_1 = "";
+          thisThing->packetGrab_temp = "";
         } 
-      PT_END(pt);
-    }
-
-    //*************************************************************************************************************
-    //*******                                   PROTOTHREAD packetGrab2_sense
-    //*************************************************************************************************************
-    static int packetGrab2_sense(struct pt *pt){
-      PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, xbee2.data_received_length);
-        packetGrab_xbee = 2;
-        packetGrab_init_2 = packetGrab();
-        if(packetGrab_init_2)
-        {
-          xbee2.data_received_length = 0;
-        }
-        else
-        {
-          packetGrab_temp_2 = "";
-        } ;
       PT_END(pt);
     }
 
     //*************************************************************************************************************
     //*******                                   PROTOTHREAD packetParse1_sense
     //*************************************************************************************************************
-    static int packetParse1_sense(struct pt *pt){
+    static int packetParse1_sense(struct pt *pt, thing *thisThing){
       PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, xbee2.data_received_length);
-        packetGrab_xbee = 2;
-        packetGrab_init_2 = packetGrab();
-        if(packetGrab_init_2)
-        {
-          xbee2.data_received_length = 0;
-        }
-        else
-        {
+      PT_WAIT_UNTIL(pt, thisThing->packetGrab_temp.length());
+        
           packetGrab_temp_2 = "";
         } ;
       PT_END(pt);
@@ -2105,72 +2132,80 @@
     //*************************************************************************************************************
     //*******                                           packetGrab
     //*************************************************************************************************************
-    bool packetGrab(thing *theThing)
+    bool packetGrab(thing *theThing, Xbee *xbee)
     {
       bool concat_bool;           // used to see if the concat() function worked
       bool rtn = true;            // used to tell if the function worked
       uint8_t restart_count;      // used to track the number of attempted concat() attempts 
-      if(packetGrab_xbee == 1)                                    // pass the respective xbee buffer and bufferlength
-      {                                                           // to the decompression function
-        decompressed_size = decompress(xbee1.data_received, packetGrab_decompressed, xbee1.data_received_length);
-        matchCaseDecompress(packetGrab_decompressed, decompressed_size);  // then decode to relevant data streams
-        
-        for(int i = 0; i < decompressed_size, i++)
-        {
-          restart_count = 0;        // reset the restart counter
-          concat_bool = false;      // reset the concat_bool to ensure the while loop works
-          while((!concat_bool) && (restart_count < 251))    // kicks out if the concat worked or the max concat
-          {                                                 // attempts is reached
-            concat_bool = theThing->packetGrab_temp.concat(packetGrab_decompressed[i]);
-            restart_count++;
-          }
-          rtn &= concat_bool; // bitwise AND rtn and concat_bool to accumulate any error into a function error
+                                                                  // pass the respective xbee buffer and bufferlength
+                                                                 // to the decompression function
+      decompressed_size = decompress(xbee->data_received, packetGrab_decompressed, xbee->data_received_length);
+      matchCaseDecompress(packetGrab_decompressed, decompressed_size);  // then decode to relevant data streams
+      
+      for(int i = 0; i < decompressed_size, i++)
+      {
+        restart_count = 0;        // reset the restart counter
+        concat_bool = false;      // reset the concat_bool to ensure the while loop works
+        while((!concat_bool) && (restart_count < 251))    // kicks out if the concat worked or the max concat
+        {                                                 // attempts is reached
+          concat_bool = theThing->packetGrab_temp.concat(packetGrab_decompressed[i]);
+          restart_count++;
         }
-      }                                                           //
-      #ifdef XB2_DEST_ADDR
-        else if (packetGrab_xbee == 2)                              //
-        {                                                           //
-          decompressed_size = decompress(xbee2.data_received, packetGrab_decompressed, xbee2.data_received_length);
-          matchCaseDecompress(packetGrab_decompressed, decompressed_size);  // then decode to relevant data streams
-
-          for(int i = 0; i < decompressed_size, i++)
-          {
-            restart_count = 0;
-            concat_bool = false;
-            while((!concat_bool) && (restart_count < 251))    // allows 250 attempts to concatenate each char of the
-            {                                                 // decompressed array into a temporary string
-              concat_bool = packetGrab_temp_2.concat(packetGrab_decompressed[i]);
-              restart_count++;
-            }
-            rtn &= concat_bool; // bitwise AND rtn and concat_bool to accumulate any error into a function error
-          }
-        }                                                           //
-      #endif
-      else return false;                                                //
+        rtn &= concat_bool; // bitwise AND rtn and concat_bool to accumulate any error into a function error
+      }
       return rtn;
     }
     
     //*************************************************************************************************************
     //*******                                           MakeFiles
     //*************************************************************************************************************
-    int makeFiles(){
+    int makeFiles(thing *thisThing){
       //usb.println(F("entering makeFiles()"));// 
       bool rtn = true;                          // set a boolean flag of rtn to be true
     
     // commented out, filenames set to global vars  ***********************************
-      char gpsfile_1[18];                         // create a pointer for a character string of 15 for gps string
-      char otherdatafile_1[18];                   // create a pointer for a character string of 15 for other data strings
+      char gpsfile[25];                         // create a pointer for a character string of 15 for gps string
+      char otherdatafile[25];                   // create a pointer for a character string of 15 for other data strings
+
+      String gpsFilename = thisThing->Name;
+      String otherFilename = thisThing->Name;
+
+      uint8_t countdown = 255;
+      bool concat_worked = false;
+      while((!concat_worked) && countdown)
+      {
+        concat_worked = gpsFilename.concat("_GPSLOG05.TXT");
+      }
+      if(concat_worked){
+        countdown = 255;
+        concat_worked = false;
+        while((!concat_worked) && countdown)
+        {
+          concat_worked = otherFilename.concat("_AODATA05.TXT");
+        }
+        if(!concat_worked)
+        {
+          return false;
+        }
+      }
+      else
+      {
+        return false;
+      }
+
+      uint8_t gpsIndex = thisThing->Name.length() + 7;
+      uint8_t otherIndex = thisThing->Name.length() + 7;
       
-      strcpy(gpsfile_1, "GPSLOG_1_05.TXT");          // set the string name to the pointer
-      strcpy(otherdatafile_1, "AODATA_1_05.TXT");    // set the string name to the pointer
+      strcpy(gpsfile, gpsFilename);          // set the string name to the pointer
+      strcpy(otherdatafile, otherFilename);    // set the string name to the pointer
       
       //usb.println(F("made it through filename initialization stuffs"));                                          
                                                 //
       for(uint8_t i = 0; i < 100; i++)          // for the gps file 
       {                                         // for all numbers from 0 to 100
-        gpsfile_1[9] = '0' + i/10;                // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
-        gpsfile_1[10] = '0' + i%10;                // replace the 7th character with a 0 plus the 2nd digit of the remainder of the division of i and 10
-        if(!SD.exists(gpsfile_1))                 // if that new file name DOES NOT EXIST within the sd card
+        gpsfile[gpsIndex] = '0' + i/10;                // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
+        gpsfile[gpsIndex+1] = '0' + i%10;                // replace the 7th character with a 0 plus the 2nd digit of the remainder of the division of i and 10
+        if(!SD.exists(gpsfile))                 // if that new file name DOES NOT EXIST within the sd card
         {                                       //
           break;                                // then get out of the loop because you have found a new file name which doesn't exist
         }                                       //
@@ -2180,9 +2215,9 @@
                                                 //
       for(uint8_t i = 0; i < 100; i++)          // for the gps file 
       {                                         // for all numbers from 0 to 100
-        otherdatafile_1[9] = '0' + i/10;          // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
-        otherdatafile_1[10] = '0' + i%10;          // replace the 7th character with a 0 plus the 2nd digit of the remainder of the division of i and 10
-        if(!SD.exists(otherdatafile_1))           // if that new file name DOES NOT EXIST within the sd card
+        otherdatafile[otherIndex] = '0' + i/10;          // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
+        otherdatafile[otherIndex+1] = '0' + i%10;          // replace the 7th character with a 0 plus the 2nd digit of the remainder of the division of i and 10
+        if(!SD.exists(otherdatafile))           // if that new file name DOES NOT EXIST within the sd card
         {                                       //
           break;                                // then get out of the loop because you have found a new file name which doesn't exist
         }                                       //
@@ -2190,22 +2225,22 @@
       
       //usb.println(F("made it through otherdatafile suffix search"));
                                                 //
-      GPSdata_1 = SD.open(gpsfile_1, FILE_WRITE);   // write a new file for the gps file on the SD card
-      if(!GPSdata_1)                              // if the file failed to be created
+      thisThing->GPSdata = SD.open(gpsfile, FILE_WRITE);   // write a new file for the gps file on the SD card
+      if(!GPSdata)                              // if the file failed to be created
       {                                         // 
         usb.print(F("Failed to create "));         // display failed to create on the serial monitor
-        usb.println(gpsfile_1);                   // followed by the filename
+        usb.println(gpsfile);                   // followed by the filename
         rtn = false;                            // set the boolean flag rtn to false
       }                                         // end
       else{
         //usb.println(F("made it through gps file creation")); 
       }
                                                 //        
-      OtherData_1 = SD.open(otherdatafile, FILE_WRITE); // write a new file for the gps file on the SD card
-      if(!OtherData_1)                                // if the file failed to be created
+      thisThing->OtherData = SD.open(otherdatafile, FILE_WRITE); // write a new file for the gps file on the SD card
+      if(!OtherData)                                // if the file failed to be created
       {                                             // 
         usb.print(F("Failed to create "));             // display failed to create on the serial monitor
-        usb.println(otherdatafile_1);                 // followed by the filename
+        usb.println(otherdatafile);                 // followed by the filename
         rtn = false;                                // set the boolean flag rtn to false
       }                                             //
       else{
@@ -2213,67 +2248,7 @@
       }
       //usb.println(F("returning rtn"));
       //usb.println(rtn); 
-      //usb.println(F("leaving makeFiles()"));  
-
-// DEFINE THE OTHER FILES IF THERE IS A 2ND XBEE TO RECEIVE
-      #ifdef XB2_DEST_ADDR
-
-        char gpsfile_2[18];
-        char otherdatafile_2[18];
-
-        strcpy(gpsfile_2, "GPSLOG_2_05.TXT");          // set the string name to the pointer
-        strcpy(otherdatafile_2, "AODATA_2_05.TXT");    // set the string name to the pointer
-        
-        //usb.println(F("made it through filename initialization stuffs"));                                          
-                                                  //
-        for(uint8_t i = 0; i < 100; i++)          // for the gps file 
-        {                                         // for all numbers from 0 to 100
-          gpsfile_2[9] = '0' + i/10;                // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
-          gpsfile_2[10] = '0' + i%10;                // replace the 7th character with a 0 plus the 2nd digit of the remainder of the division of i and 10
-          if(!SD.exists(gpsfile_2))                 // if that new file name DOES NOT EXIST within the sd card
-          {                                       //
-            break;                                // then get out of the loop because you have found a new file name which doesn't exist
-          }                                       //
-        }                                         // otherwise, loop back again because you cannot overwrite files
-        
-        //usb.println(F("made it through gpsfile suffix search"));                                          
-                                                  //
-        for(uint8_t i = 0; i < 100; i++)          // for the gps file 
-        {                                         // for all numbers from 0 to 100
-          otherdatafile_2[9] = '0' + i/10;          // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
-          otherdatafile_2[10] = '0' + i%10;          // replace the 7th character with a 0 plus the 2nd digit of the remainder of the division of i and 10
-          if(!SD.exists(otherdatafile_2))           // if that new file name DOES NOT EXIST within the sd card
-          {                                       //
-            break;                                // then get out of the loop because you have found a new file name which doesn't exist
-          }                                       //
-        }                                         // otherwise, loop back again because you cannot overwrite files
-        
-        //usb.println(F("made it through otherdatafile suffix search"));
-                                                  //
-        GPSdata_2 = SD.open(gpsfile_2, FILE_WRITE);   // write a new file for the gps file on the SD card
-        if(!GPSdata_2)                              // if the file failed to be created
-        {                                         // 
-          usb.print(F("Failed to create "));         // display failed to create on the serial monitor
-          usb.println(gpsfile_2);                   // followed by the filename
-          rtn = false;                            // set the boolean flag rtn to false
-        }                                         // end
-        else{
-          //usb.println(F("made it through gps file creation")); 
-        }
-                                                  //        
-        OtherData_2 = SD.open(otherdatafile_2, FILE_WRITE); // write a new file for the gps file on the SD card
-        if(!OtherData_2)                                // if the file failed to be created
-        {                                             // 
-          usb.print(F("Failed to create "));             // display failed to create on the serial monitor
-          usb.println(otherdatafile_2);                 // followed by the filename
-          rtn = false;                                // set the boolean flag rtn to false
-        }                                             //
-        else{
-          //usb.println(F("made it through otherdata file creation")); 
-        }
-        
-      #endif
-      
+      //usb.println(F("leaving makeFiles()"));                                        
       return (int)rtn; 
     }
  
@@ -2590,42 +2565,55 @@
     //*************************************************************************************************************
     //*******                                           setupXbee
     //*************************************************************************************************************
-    void setupXbee()
+    void setupXbee(Xbee *this_xbee, XbeeSettings *these_settings)
     {
-      xbee1.setSPI_clockFreq(XB1_SPI_CLK);
-      xbee1.setSPI_bitOrder(MSBFIRST);
-      xbee1.setSPI_mode(SPI_MODE0);
-      xbee1.setMode(XB1_PRIMARY_MODE);
-      xbee1.setDestinationAddress(XB1_DEST_ADDR);
-      xbee1.setCommandInterruptPin(XB1_CMD);
-      xbee1.setLocalCommand_DIO(XB1_LOC_COMMAND_DIO);
-      //xbee.setCutdownInterruptPin();                      // use if needed
-      xbee1.setLocalCutdown_DIO(XB1_LOC_CUTDOWN_DIO);
-      xbee1.setDestinationCommand_DIO(XB1_DEST_COMMAND_DIO);
-      xbee1.setDestinationCutdown_DIO(XB1_DEST_CUTDOWN_DIO);
-      xbee1.setMaxPayloadSize(XB1_MAX_PAYLOAD_SIZE);
-
-      #ifdef XB2_DEST_ADDR
-        xbee2.setSPI_clockFreq(XB2_SPI_CLK);
-        xbee2.setSPI_bitOrder(MSBFIRST);
-        xbee2.setSPI_mode(SPI_MODE0);
-        xbee2.setMode(XB2_PRIMARY_MODE);
-        xbee2.setDestinationAddress(XB2_DEST_ADDR);
-        xbee2.setCommandInterruptPin(XB2_CMD);
-        xbee2.setLocalCommand_DIO(XB2_LOC_COMMAND_DIO);
-        //xbee.setCutdownInterruptPin();                      // use if needed
-        xbee2.setLocalCutdown_DIO(XB2_LOC_CUTDOWN_DIO);
-        xbee2.setDestinationCommand_DIO(XB2_DEST_COMMAND_DIO);
-        xbee2.setDestinationCutdown_DIO(XB2_DEST_CUTDOWN_DIO);
-        xbee2.setMaxPayloadSize(XB2_MAX_PAYLOAD_SIZE);
-      #endif
+      this_xbee->setSPI_clockFreq(these_settings->spi_clk_freq_hz);
+      this_xbee->setSPI_bitOrder(MSBFIRST);
+      this_xbee->setSPI_mode(SPI_MODE0);
+      this_xbee->setMode(these_settings->primary_mode);
+      this_xbee->setDestinationAddress(these_settings->destination_address);
+      this_xbee->setCommandInterruptPin(these_settings->cmd_pin);
+      this_xbee->setLocalCommand_DIO(these_settings->local_cmd_dio);
+      //this_xbee.setCutdownInterruptPin(these_settings->cutdown_interrupt);      // use if needed
+      this_xbee->setLocalCutdown_DIO(these_settings->local_cutdown_dio);
+      this_xbee->setDestinationCommand_DIO(these_settings->destination_cmd_dio);
+      this_xbee->setDestinationCutdown_DIO(these_settings->destination_cutdown_dio);
+      this_xbee->setMaxPayloadSize(these_settings->max_payload_size_bytes);
+      
+//      xbee1.setSPI_clockFreq(XB1_SPI_CLK);
+//      xbee1.setSPI_bitOrder(MSBFIRST);
+//      xbee1.setSPI_mode(SPI_MODE0);
+//      xbee1.setMode(XB1_PRIMARY_MODE);
+//      xbee1.setDestinationAddress(XB1_DEST_ADDR);
+//      xbee1.setCommandInterruptPin(XB1_CMD);
+//      xbee1.setLocalCommand_DIO(XB1_LOC_COMMAND_DIO);
+//      //xbee.setCutdownInterruptPin();                      // use if needed
+//      xbee1.setLocalCutdown_DIO(XB1_LOC_CUTDOWN_DIO);
+//      xbee1.setDestinationCommand_DIO(XB1_DEST_COMMAND_DIO);
+//      xbee1.setDestinationCutdown_DIO(XB1_DEST_CUTDOWN_DIO);
+//      xbee1.setMaxPayloadSize(XB1_MAX_PAYLOAD_SIZE);
+//
+//      #ifdef XB2_DEST_ADDR
+//        xbee2.setSPI_clockFreq(XB2_SPI_CLK);
+//        xbee2.setSPI_bitOrder(MSBFIRST);
+//        xbee2.setSPI_mode(SPI_MODE0);
+//        xbee2.setMode(XB2_PRIMARY_MODE);
+//        xbee2.setDestinationAddress(XB2_DEST_ADDR);
+//        xbee2.setCommandInterruptPin(XB2_CMD);
+//        xbee2.setLocalCommand_DIO(XB2_LOC_COMMAND_DIO);
+//        //xbee.setCutdownInterruptPin();                      // use if needed
+//        xbee2.setLocalCutdown_DIO(XB2_LOC_CUTDOWN_DIO);
+//        xbee2.setDestinationCommand_DIO(XB2_DEST_COMMAND_DIO);
+//        xbee2.setDestinationCutdown_DIO(XB2_DEST_CUTDOWN_DIO);
+//        xbee2.setMaxPayloadSize(XB2_MAX_PAYLOAD_SIZE);
+//      #endif
     }
 
     //*************************************************************************************************************
     //*******                                    struct Thing reserveMemory
     //*************************************************************************************************************
     void reserveMemory(thing *theThing)
-    {
+    {                                     // RESERVES SPACE FOR ALL THE STRINGS SO THEY DONT DYNAMICALLY BLOW THINGS UP
       theThing->Name.reserve(NAME_SIZE);
       theThing->lat.reserve(LAT_SIZE);
       theThing->lon.reserve(LON_SIZE);
@@ -2647,11 +2635,14 @@
       theThing->eul.y.reserve(AccGyroMagEul_SIZE);
       theThing->eul.z.reserve(AccGyroMagEul_SIZE);
     
-    
       theThing->pressure.reserve(PRESSURE_SIZE);
       theThing->temperature.reserve(TempHumid_SIZE);
       theThing->humidity.reserve(TempHumid_SIZE);
       theThing->pitot.reserve(PITOT_SIZE);
+
+      theThing->OtherflushTotal.reserve(FLUSHTOTAL_SIZE);
+      theThing->GPSflushTotal.reserve(FLUSHTOTAL_SIZE);
+      theThing->packetGrab_temp.reserve(FLUSHTOTAL_SIZE);  
     }
 
     //*************************************************************************************************************
@@ -3314,21 +3305,34 @@
         XB2_NP = xbee2.begin();
       }
       // include any other xbee begin cycles here
-      if(XB1_NP == 256 && XB2_NP == 256)
+      if(XB1_NP == 256)
       {
-        setupXbee(); // include all setup features in this fucntion (above)
+        setupXbee(&xbee1,&xbee_set1); // include all setup features in this fucntion (above)
       }
+      #ifdef XB2_DEST_ADDR
+        if(XB2_NP == 256)
+        {
+          setupXbee(&xbee2,&xbee_set2); // include all setup features in this fucntion (above)
+        }
+      #endif
       
       if(!SD.begin(SD_CS)){         // initializes the SD card
         usb.println(F("SD Card failed to initialize!")); // if the SD card fails, set sdError true and tell someone
         sdError = true;
         fatalError = true;
       }                                 
-      else if(!makeFiles()){        // initializes the SD files
+      else if(!makeFiles(&one)){        // initializes the SD files
         usb.println(F("File Initialization Failed!")); // if makeFiles fails, set makeFileError to true and tell someone
         makeFileError = true;
         fatalError = true;
       }
+      #ifdef XB2_DEST_ADDR
+        else if(!makeFiles(&two)){
+          usb.println(F("File Initialization Failed!")); // if makeFiles fails, set makeFileError to true and tell someone
+          makeFileError = true;
+          fatalError = true;
+        }
+      #endif
       else{
         usb.println(F("makefiles worked!"));
       }                       
