@@ -23,9 +23,9 @@
 //*************************************************************************************************************
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 //
-//#define SENSORMODE_GONDOLA
+#define SENSORMODE_GONDOLA
 //#define SENSORMODE_SAIL
-#define SENSORMODE_RECEIVER
+//#define SENSORMODE_RECEIVER
 
 
 //XBEE DESTINATION ADDRESS1: 
@@ -33,7 +33,7 @@
 // 
 #define XB1_DEST_ADDR (0x0013A200417E38C1)  // DESTINATION XBEE 64-BIT ADDRESS (A200K, DEFAULT GONDOLA)
 //#define XB1_DEST_ADDR (0x0013A200417E3816) // DESTINATION XBEE 64-BIT ADDRESS (B200K, DEFAULT SAIL)
-//#define XB1_DEST_ADDR (0x0013A200417E3829)  // DESTINATION XBEE 64-BIT ADDRESS (C200K, DEFAULT GONDOLA RECEIVER)
+#define XB1_DEST_ADDR (0x0013A200417E3829)  // DESTINATION XBEE 64-BIT ADDRESS (C200K, DEFAULT GONDOLA RECEIVER)
 //#define XB1_DEST_ADDR (0x0013A200417E381A) // DESTINATION XBEE 64-BIT ADDRESS (D200K, DEFAULT SAIL RECEIVER)
 //#define XB1_DEST_ADDR (0x0013A200417E35F7) // DESTINATION XBEE 64-BIT ADDRESS (E200K, DEFAULT BACKUP UNIT)
 
@@ -42,10 +42,25 @@
 //  UNCOMMENT WHICH XBEE DESTINATION ADDRESS YOU WANT TO COMMUNICATE WITH, UNCOMMENT THE REMAINDER 
 //
 //#define XB2_DEST_ADDR (0x0013A200417E38C1)  // DESTINATION XBEE 64-BIT ADDRESS (A200K, DEFAULT GONDOLA)
-#define XB2_DEST_ADDR (0x0013A200417E3816) // DESTINATION XBEE 64-BIT ADDRESS (B200K, DEFAULT SAIL)
+//#define XB2_DEST_ADDR (0x0013A200417E3816) // DESTINATION XBEE 64-BIT ADDRESS (B200K, DEFAULT SAIL)
 //#define XB2_DEST_ADDR (0x0013A200417E3829)  // DESTINATION XBEE 64-BIT ADDRESS (C200K, DEFAULT GONDOLA RECEIVER)
 //#define XB2_DEST_ADDR (0x0013A200417E381A) // DESTINATION XBEE 64-BIT ADDRESS (D200K, DEFAULT SAIL RECEIVER)
 //#define XB2_DEST_ADDR (0x0013A200417E35F7) // DESTINATION XBEE 64-BIT ADDRESS (E200K, DEFAULT BACKUP UNIT)
+
+
+//XBEE UNIT NAMES : RECEIVER USE ONLY!
+//  UNCOMMENT THE NAME OF EACH UNIT THE CORRESPONDING RECEIVE XBEE WILL BE RECEIVING FROM
+//  COMMENT OUT THE REST, USED FOR FORMATTING THE HUD. 
+//
+//    XBEE1 TRANSMITTER NAME
+//      #define XBEE1_NAME "GONDOLA"
+//      #define XBEE1_NAME "SAIL"
+//      #define XBEE1_NAME "OTHER"    // CHANGE OTHER TO YOUR PREFERRED NAME (LIMIT 7 CHARACTERS)
+//
+//    XBEE2 TRANSMITTER NAME
+//      #define XBEE2_NAME "GONDOLA"
+//      #define XBEE2_NAME "SAIL"
+//      #define XBEE2_NAME "OTHER"    // CHANGE OTHER TO YOUR PREFERRED NAME (LIMIT 7 CHARACTERS)
 //*************************************************************************************************************
 //*******                                 END : CONFIGURATION SECTIONS
 //*************************************************************************************************************
@@ -94,8 +109,8 @@
       Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
       #define imuPower 12     // used on the imu power transistor gate for a hard reset
     #elif defined(SENSORMODE_SAIL)
-      Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_A);
-      #define imuPower 13     // used on the imu power transistor gate for a hard reset
+      Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
+      #define imuPower 12     // used on the imu power transistor gate for a hard reset
     #endif
     
     #define usb Serial            // renames Serial as usb
@@ -244,15 +259,15 @@
     uint8_t imuResetCount = 0;        // tracks the number of IMU resets, used to tie recurring errors to watchdog
     uint8_t altResetCount = 0;        // tracks the number of IMU resets, used to tie recurring errors to watchdog
     uint8_t pitotCount = 0;           // tracks number of times the pitot was sampled before averaging 
-    float altitude = 0;           // holds the official altitude info (in case the GPS or parsing function breaks, use altimeter as backup)
+    float altitude = 0;           // holds the official altitude info (in //the GPS or parsing function breaks, use altimeter as backup)
     float rudderAngle_actual;
     float rudderAngle_setpoint = 0;
     
     
-    //char prev_gpsfile[15];        // previous file name for the GPS file in case of an sdError or makeFileError reset
-    //char prev_otherdatafile[15];  // previous file name for the sensor file in case of an sdError or makeFileError reset
-    //char gpsfile[15];             // current file name for the GPS file in case of an sdError or makeFileError reset
-    //char otherdatafile[15];       // current file name for the sensor file in case of an sdError or makeFileError rese
+    //char prev_gpsfile[15];        // previous file name for the GPS file in //of an sdError or makeFileError reset
+    //char prev_otherdatafile[15];  // previous file name for the sensor file in //of an sdError or makeFileError reset
+    //char gpsfile[15];             // current file name for the GPS file in //of an sdError or makeFileError reset
+    //char otherdatafile[15];       // current file name for the sensor file in //of an sdError or makeFileError rese
     
     //*************************************************************************************************************
     //*******                                   PROTOTHREAD getGPS_sense
@@ -1152,9 +1167,9 @@
     //*************************************************************************************************************
     void cutdownFunc(){
       usb.println(F("CUTDOWN INITIATED! FUUUUUUUUU!"));
-      digitalWrite(CUTDOWN, LOW);
+      //digitalWrite(CUTDOWN, LOW);
       delay(10000);
-      digitalWrite(CUTDOWN, HIGH);
+      //digitalWrite(CUTDOWN, HIGH);
       cutdown = true;
       cutdownStamp = 0;
     }
@@ -1716,9 +1731,9 @@
       pinMode(imuPower, OUTPUT);    // Sets all power transistor gate pins and reset pins to OUTPUT mode
       pinMode(altPower, OUTPUT);    //
     //  pinMode(imuReset, OUTPUT);    //
-      pinMode(CUTDOWN, OUTPUT);     //
+    //  pinMode(CUTDOWN, OUTPUT);     // MCU cutdown no longer used
       
-      digitalWrite(CUTDOWN, HIGH);   // ensures that the cutdown is not accidentally triggered during startup (HIGH ON THE CUTDOWN MEANS OFF ON THE CUTDOWN CIRCUIT)
+    //  digitalWrite(CUTDOWN, HIGH);   // ensures that the cutdown is not accidentally triggered during startup (HIGH ON THE CUTDOWN MEANS OFF ON THE CUTDOWN CIRCUIT)
       digitalWrite(sdPower, HIGH);  //
       //digitalWrite(gpsPower, LOW); //
       digitalWrite(imuPower, HIGH); // closes path to ground on all sensors, and sets the imu rst pin to HIGH
@@ -1895,6 +1910,9 @@
  * *************************************************************************************************************
  * *************************************************************************************************************
  */
+    #define debug_general
+    
+    
     #include <Wire.h>             // wire library (needed for some sensors)
     #include <SPI.h>              // SPI digital comms library (needed for SD card)
     #include <pt.h>               // protothread library
@@ -1957,16 +1975,16 @@
 
     // STRUCT DEFINITIONS USED TO STORE, ALIGN, AND PRINT DATA RECEIVED TO A HEADS UP DISPLAY IN THE 
     // SERIAL MONITOR
-    #define NAME_SIZE = 7;            //
-    #define AccGyroMagEul_SIZE = 7;   //
-    #define TempHumid_SIZE = 5;       //
-    #define PRESSURE_SIZE = 9;        //  Constants denoting the max byte size of each datafield
-    #define PITOT_SIZE = 8;           //
-    #define LAT_SIZE = 11;            //
-    #define LON_SIZE = 12;            //
-    #define ELEV_SIZE = 8;            //
-    #define FLUSHTOTAL_SIZE 600       //
-    #define FLUSHTOTAL_SIZE 600       //
+    #define NAME_SIZE 7            //
+    #define AccGyroMagEul_SIZE 7   //
+    #define TempHumid_SIZE 5       //
+    #define PRESSURE_SIZE 9        //  Constants denoting the max byte size of each datafield
+    #define PITOT_SIZE 8           //
+    #define LAT_SIZE 11            //
+    #define LON_SIZE 12            //
+    #define ELEV_SIZE 8            //
+    #define FLUSHTOTAL_SIZE 600    //
+    #define FLUSHTOTAL_SIZE 600    //
 
     typedef struct    // struct XbeeSettings : used to set up each xbee
     {
@@ -1997,6 +2015,30 @@
       uint8_t y;    // uint8_t member used to store the x values of the struct
       uint8_t z;    // uint8_t member used to store the x values of the struct
     }ThreeSpace;
+
+    typedef struct  // struct status buffer : used to display the latest status messages
+    {
+      String line1;
+      String line2;
+      String line3;
+      String line4;
+      String line5;
+      String line6;
+      String line7;
+      String line8;
+    }StatusBuffer;
+
+    typedef struct  // struct status buffer : used to display the latest status messages
+    {
+      uint8_t line1;
+      uint8_t line2;
+      uint8_t line3;
+      uint8_t line4;
+      uint8_t line5;
+      uint8_t line6;
+      uint8_t line7;
+      uint8_t line8;
+    }StatBuffSpace;
     
     typedef struct  // struct thing : used to store all relevant info about the received data and how to 
                     //                print it in an aligned manner
@@ -2013,6 +2055,7 @@
       String temperature;             // string member used to store the temperature data of the struct
       String humidity;                // string member used to store the humidity data of the struct   
       String pitot;                   // string member used to store the pitot data of the struct
+      StatusBuffer statBuff;           // used to hold the latest status messages
       String OtherflushTotal = "";    // string member for sensor data (temporary storage)
       String GPSflushTotal = "";      // string member for GPS data (temporary storage)
       String packetGrab_temp = "";    // used for storing the temp data prior to compressing and chopping
@@ -2020,12 +2063,14 @@
       int rmc;                        // used for storing gps sentence existence
       bool newGps;                    // used for storing a control bool for new gps sentences
       bool newOther;                  // used for storing a control bool for new othersensor strings
+      bool cutdown_triggered;         // used for storing data about the state of the cutdown
       File OtherData;                 // SD file for sensor data
       File GPSdata;                   // SD file for GPS data
       uint8_t Name_space;             // space used to align name string in printThings()
       uint8_t lat_space;              // space used to align lat string in printThings()
       uint8_t lon_space;              // space used to align name string in printThings()
       uint8_t elev_space;             // space used to align name string in printThings()
+      long cutdown_stamp;             // used to store millis() timestamp of last cutdown
       ThreeSpace acc_space;           // space used to align acc members in printThings()
       ThreeSpace gyro_space;          // space used to align gyro members in printThings()
       ThreeSpace mag_space;           // space used to align mag members in printThings()
@@ -2034,12 +2079,14 @@
       uint8_t temperature_space;      // space used to align temperature string in printThings()
       uint8_t humidity_space;         // space used to align humidity string in printThings()
       uint8_t pitot_space;            // space used to align pitot string in printThings()
-      static struct pt packetGrab_PT;        // protothread for the initial packetGrab
-      static struct pt packetParse_PT;       // protothread for the packetparsing function
-      static struct pt gpsParse_PT;          // protothread for parsing the GPS sentence and modifying struct members
-      static struct pt otherParse_PT;        // protothread for parsing the othersensor sentence and modifying struct members
-      static struct pt gpsWrite_PT;          // protothread for writing the GPS sentence to the appropriate SD file
-      static struct pt otherWrite_PT;        // protothread for writing the othersensor sentence to the appropriate SD file
+      StatBuffSpace statSpace;        // space used to align all of the messages in the status buffer
+      struct pt packetGrab_PT;        // protothread for the initial packetGrab
+      struct pt packetParse_PT;       // protothread for the packetparsing function
+      struct pt gpsParse_PT;          // protothread for parsing the GPS sentence and modifying struct members
+      struct pt otherParse_PT;        // protothread for parsing the othersensor sentence and modifying struct members
+      struct pt gpsWrite_PT;          // protothread for writing the GPS sentence to the appropriate SD file
+      struct pt otherWrite_PT;        // protothread for writing the othersensor sentence to the appropriate SD file
+      struct pt parseInput_PT;          // protothread for figuring out if new user input is for the struct, and how to handle it
     }thing;
 
     thing one;                // initialize the first struct
@@ -2087,30 +2134,23 @@
     bool sdError = false;         // is there an SD-specific error?
     bool makeFileError = false;   // did makeFiles() fail?
     bool fatalError = false;      // is there a fatal error?
+    bool printStarted = false;  
 
-//    // PROTOTHREAD GLOBALS
-//    static struct pt packetGrab_PT1;        // protothread for the initial packetGrab
-//    static struct pt packetParse_PT1;       // protothread for the packetparsing function
-//    static struct pt gpsParse_PT1;          // protothread for parsing the GPS sentence and modifying struct members
-//    static struct pt otherParse_PT1;        // protothread for parsing the othersensor sentence and modifying struct members
-//    static struct pt gpsWrite_PT1;          // protothread for writing the GPS sentence to the appropriate SD file
-//    static struct pt otherWrite_PT1;        // protothread for writing the othersensor sentence to the appropriate SD file
-//    #ifdef XB2_DEST_ADDR
-//      static struct pt packetGrab_PT2;        // protothread for the initial packetGrab
-//      static struct pt packetParse_PT2;       // protothread for the packetparsing function
-//      static struct pt gpsParse_PT2;          // protothread for parsing the GPS sentence and modifying struct members
-//      static struct pt otherParse_PT2;        // protothread for parsing the othersensor sentence and modifying struct members
-//      static struct pt gpsWrite_PT2;          // protothread for writing the GPS sentence to the appropriate SD file
-//      static struct pt otherWrite_PT2;        // protothread for writing the othersensor sentence to the appropriate SD file
-//    #endif
-    static struct pt printHud_PT;
+    String user_input;
+
+    static struct pt printHud_PT;          // protothread for printing the HUD
+    static struct pt userInput_PT;         // protothread for handling user input commands
     
     // TIMING THRESHOLD CONSTANTS FOR TIME-BASED EVENT HANDLING
     #define printHud_Thresh 1000
+    #define cutdown_Thresh 300000
     
     // TIME_STAMPS FOR TIME-BASED EVENT HANDLING
     long errorFix_Stamp = 0;      // timestamp used to track when to call non-fatal error fix checks
     long printHud_Stamp = 0;
+
+    // OTHERSTUFF
+    int print_counter = 0;
 
     //*************************************************************************************************************
     //*******                                   PROTOTHREAD packetGrab_sense
@@ -2283,14 +2323,140 @@
     //*************************************************************************************************************
     static int HUD_sense(struct pt *pt){ // prints the heads up display
       PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, millis() - printHud_Stamp >= printHud_Thresh);
+      PT_WAIT_UNTIL(pt, printStarted || (millis() - printHud_Stamp >= printHud_Thresh));
         #ifndef XB2_DEST_ADDR
+          calcSpace(&one);
           printThings(&one);
         #else
+          calcSpace(&one);
+          calcSpace(&two);
           printThings(&one,&two);
         #endif
         printHud_Stamp = millis();
       PT_END(pt);
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD userInput_sense
+    //*************************************************************************************************************
+    static int userInput_sense(struct pt *pt){ // prints the heads up display
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt,usb.available());
+        user_input = "";
+        while(usb.available())
+        {
+          user_input += (char)usb.read();
+        }
+      PT_END(pt);
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD parseInput_sense
+    //*************************************************************************************************************
+    static int parseInput_sense(Xbee *xbee, thing *thisThing, XbeeSettings *theseSettings){
+      PT_BEGIN(&(thisThing->parseInput_PT));
+      PT_WAIT_UNTIL(&(thisThing->parseInput_PT), user_input.length() || (thisThing->cutdown_triggered && ((millis() - thisThing->cutdown_stamp) >= cutdown_Thresh)));
+      
+      if(thisThing -> cutdown_triggered)
+      {
+        uint8_t cutdown_cmd[20] = {0x7E,0X00,0X10,0X17,0X01,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0XFF,0XFE,0X02,0X44,0X00,0X00,0X00};
+        
+        uint8_t address[8];   // convert the 64-bit address field into an 8-bit array
+        uint32_t upperAddy = (uint32_t)((theseSettings->destination_address) >> 32);
+        uint32_t lowerAddy = (uint32_t)(theseSettings->destination_address);
+        for(int i = 3; i >=0; i--)          
+        {
+          uint32_t bitmask = 0b11111111 << ((3-i)*8);
+          address[i+4] = (uint8_t)(lowerAddy & bitmask)>>((3-i)*8);
+          address[i] = (uint8_t)((upperAddy & bitmask)>>((3-i)*8));
+        }
+        
+        for(int i = 0; i < 8; i++)    // apply the 8-bit array of the address to cutdown_cmd
+        {
+          cutdown_cmd[i+5] = address[i];
+        }
+  
+        cutdown_cmd[17] = theseSettings->destination_cutdown_dio; // this sets the dio pin to be manipulated
+        cutdown_cmd[18] = 0x05;                                   // 0x05 means pin set HIGH, CUTDOWN = OFF
+        
+        uint8_t chksum = 0; // calculate the checksum 
+        for(int i = 3; i < 19; i++) // for the subframe starting after {0x7E,0x00,0x10} and ending before the final element,
+        {
+          chksum += cutdown_cmd[i];
+        }
+        cutdown_cmd[19] = 0xFF - chksum;  // assign the checksum value to the final byte of the cutdown_cmd array
+  
+        xbee->sendFrame(cutdown_cmd,20);  // send the frame to the other end
+        thisThing->cutdown_triggered = false;
+        user_input = "";
+        addStat((String)("ctdwn"),thisThing,thisThing->cutdown_triggered);
+      }
+      else
+      {
+        if((user_input.indexOf(thisThing->Name))>-1)
+        {
+          String command = user_input.substring(user_input.indexOf(":")+1,user_input.length()-1);
+          if(command.equalsIgnoreCase("CUTDOWN"))
+          {
+            uint8_t cutdown_cmd[20] = {0x7E,0X00,0X10,0X17,0X01,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0XFF,0XFE,0X02,0X44,0X00,0X00,0X00};
+            
+            uint8_t address[8];   // convert the 64-bit address field into an 8-bit array
+            uint32_t upperAddy = (uint32_t)((theseSettings->destination_address) >> 32);
+            uint32_t lowerAddy = (uint32_t)(theseSettings->destination_address);
+            for(int i = 3; i >=0; i--)          
+            {
+              uint32_t bitmask = 0b11111111 << ((3-i)*8);
+              address[i+4] = (uint8_t)(lowerAddy & bitmask)>>((3-i)*8);
+              address[i] = (uint8_t)((upperAddy & bitmask)>>((3-i)*8));
+            }
+            
+            for(int i = 0; i < 8; i++)    // apply the 8-bit array of the address to cutdown_cmd
+            {
+              cutdown_cmd[i+5] = address[i];
+            }
+  
+            cutdown_cmd[17] = theseSettings->destination_cutdown_dio; // this sets the dio pin to be manipulated
+            cutdown_cmd[18] = 0x04;
+            
+            uint8_t chksum = 0; // calculate the checksum 
+            for(int i = 3; i < 19; i++) // for the subframe starting after {0x7E,0x00,0x10} and ending before the final element,
+            {
+              chksum += cutdown_cmd[i];
+            }
+            cutdown_cmd[19] = 0xFF - chksum;  // assign the checksum value to the final byte of the cutdown_cmd array
+
+            xbee->sendFrame(cutdown_cmd,20);  // send the frame to the other end
+            thisThing->cutdown_triggered = true;
+            thisThing->cutdown_stamp = millis();
+            user_input = "";
+            addStat((String)("ctdwn"),thisThing,thisThing->cutdown_triggered);
+          }
+          else
+          {
+            String command = user_input.substring(user_input.indexOf(":")+1,user_input.length()-1);
+            if(command.length() == 2)
+            {
+              uint8_t type = command.substring(0,1).toInt();
+              uint8_t val = command.substring(1).toInt();
+          
+              long command_stamp = millis();
+              bool command_state = false;
+              while((!command_state) && (millis() - command_stamp < 2000))
+              {
+                xbee->sendCommand(type,val);
+              }
+              addStat(thisThing,type,val,command_state);
+              user_input = "";  
+            }
+            else
+            {
+              addStat(thisThing,command,(String)("not cmd"));
+              user_input = "";
+            }
+          }
+        }
+      }
+      PT_END(&(thisThing->parseInput_PT));
     }
 
 
@@ -2299,6 +2465,7 @@
     //*************************************************************************************************************
     bool packetGrab(thing *theThing, Xbee *xbee)
     {
+      usb.println(F("packetGrab:called"));
       bool concat_bool;           // used to see if the concat() function worked
       bool rtn = true;            // used to tell if the function worked
       uint8_t restart_count;      // used to track the number of attempted concat() attempts 
@@ -2307,7 +2474,7 @@
       decompressed_size = decompress(xbee->data_received, packetGrab_decompressed, xbee->data_received_length);
       matchCaseDecompress(packetGrab_decompressed, decompressed_size);  // then decode to relevant data streams
       
-      for(int i = 0; i < decompressed_size, i++)
+      for(int i = 0; i < decompressed_size; i++)
       {
         restart_count = 0;        // reset the restart counter
         concat_bool = false;      // reset the concat_bool to ensure the while loop works
@@ -2329,8 +2496,8 @@
       bool rtn = true;                          // set a boolean flag of rtn to be true
     
     // commented out, filenames set to global vars  ***********************************
-      char gpsfile[25];                         // create a pointer for a character string of 15 for gps string
-      char otherdatafile[25];                   // create a pointer for a character string of 15 for other data strings
+      char gpsfile[20];                         // create a pointer for a character string of 15 for gps string
+      char otherdatafile[20];                   // create a pointer for a character string of 15 for other data strings
 
       String gpsFilename = thisThing->Name;
       String otherFilename = thisThing->Name;
@@ -2360,9 +2527,15 @@
 
       uint8_t gpsIndex = thisThing->Name.length() + 7;
       uint8_t otherIndex = thisThing->Name.length() + 7;
+
+      for(int i = 0; i < 20; i++)
+      {
+        gpsfile[i] = gpsFilename.charAt(i);
+        otherdatafile[i] = otherFilename.charAt(i);
+      }
       
-      strcpy(gpsfile, gpsFilename);          // set the string name to the pointer
-      strcpy(otherdatafile, otherFilename);    // set the string name to the pointer
+//      strcpy(gpsfile, gpsFilename.c_str());          // set the string name to the pointer
+//      strcpy(otherdatafile, otherFilename.c_str());    // set the string name to the pointer
       
       //usb.println(F("made it through filename initialization stuffs"));                                          
                                                 //
@@ -2391,7 +2564,7 @@
       //usb.println(F("made it through otherdatafile suffix search"));
                                                 //
       thisThing->GPSdata = SD.open(gpsfile, FILE_WRITE);   // write a new file for the gps file on the SD card
-      if(!GPSdata)                              // if the file failed to be created
+      if(!(thisThing->GPSdata))                              // if the file failed to be created
       {                                         // 
         usb.print(F("Failed to create "));         // display failed to create on the serial monitor
         usb.println(gpsfile);                   // followed by the filename
@@ -2402,7 +2575,7 @@
       }
                                                 //        
       thisThing->OtherData = SD.open(otherdatafile, FILE_WRITE); // write a new file for the gps file on the SD card
-      if(!OtherData)                                // if the file failed to be created
+      if(!(thisThing->OtherData))                                // if the file failed to be created
       {                                             // 
         usb.print(F("Failed to create "));             // display failed to create on the serial monitor
         usb.println(otherdatafile);                 // followed by the filename
@@ -2419,6 +2592,9 @@
  
 
     //*************************************************************************************************************
+    //*******                              DATA COMPRESSION CODE
+    //*************************************************************************************************************
+//*************************************************************************************************************
     //*******                              DATA COMPRESSION CODE
     //*************************************************************************************************************
     uint16_t decompress(uint8_t payload_in[], uint8_t payload_out[], uint16_t payloadIn_size)
@@ -2805,6 +2981,15 @@
       theThing->humidity.reserve(TempHumid_SIZE);
       theThing->pitot.reserve(PITOT_SIZE);
 
+      theThing->statBuff.line1.reserve(39);
+      theThing->statBuff.line2.reserve(39);
+      theThing->statBuff.line3.reserve(39);
+      theThing->statBuff.line4.reserve(39);
+      theThing->statBuff.line5.reserve(39);
+      theThing->statBuff.line6.reserve(39);
+      theThing->statBuff.line7.reserve(39);
+      theThing->statBuff.line8.reserve(39);
+
       theThing->OtherflushTotal.reserve(FLUSHTOTAL_SIZE);
       theThing->GPSflushTotal.reserve(FLUSHTOTAL_SIZE);
       theThing->packetGrab_temp.reserve(FLUSHTOTAL_SIZE);  
@@ -2815,31 +3000,101 @@
     //*************************************************************************************************************
     void calcSpace(thing *theThing)
     {
-      theThing->Name_space = (39 - theThing->Name.length()) / 2;      // calculates the additional space needed
-      theThing->lat_space = LAT_SIZE - theThing->lat.length();        // in order for strings of varying sizes to 
-      theThing->lon_space = LON_SIZE - theThing->lon.length();        // be printed in an aligned format in 
-      theThing->elev_space = ELEV_SIZE - theThing->elev.length();     // printThings()
+      //print_counter++;
+      //if(print_counter > 30)
+      //{
+       // print_counter = 1;
+      //}
       
-      theThing->acc_space.x = AccGyroMagEul_SIZE - theThing->acc.x.length();
-      theThing->acc_space.y = AccGyroMagEul_SIZE - theThing->acc.y.length();
-      theThing->acc_space.z = AccGyroMagEul_SIZE - theThing->acc.z.length();
-    
-      theThing->gyro_space.x = AccGyroMagEul_SIZE - theThing->gyro.x.length();
-      theThing->gyro_space.y = AccGyroMagEul_SIZE - theThing->gyro.y.length();
-      theThing->gyro_space.z = AccGyroMagEul_SIZE - theThing->gyro.z.length();
-    
-      theThing->mag_space.x = AccGyroMagEul_SIZE - theThing->mag.x.length();
-      theThing->mag_space.y = AccGyroMagEul_SIZE - theThing->mag.y.length();
-      theThing->mag_space.z = AccGyroMagEul_SIZE - theThing->mag.z.length();
-    
-      theThing->eul_space.x = AccGyroMagEul_SIZE - theThing->eul.x.length();
-      theThing->eul_space.y = AccGyroMagEul_SIZE - theThing->eul.y.length();
-      theThing->eul_space.z = AccGyroMagEul_SIZE - theThing->eul.z.length();
-    
-      theThing->pressure_space = PRESSURE_SIZE - theThing->pressure.length();
-      theThing->temperature_space = TempHumid_SIZE - theThing->temperature.length();
-      theThing->humidity_space = TempHumid_SIZE - theThing->humidity.length();
-      theThing->pitot_space = PITOT_SIZE - theThing->pitot.length();
+        
+        //2:
+          theThing->Name_space = (39 - theThing->Name.length()) / 2;      // calculates the additional space needed
+          //break;
+
+        //5:
+          theThing->lat_space = LAT_SIZE - theThing->lat.length();        // in order for strings of varying sizes to 
+          //break;
+
+        //6:      
+          theThing->lon_space = LON_SIZE - theThing->lon.length();        // be printed in an aligned format in
+          //break;
+
+        //7:          
+          theThing->elev_space = ELEV_SIZE - theThing->elev.length();     // printThings()
+          //break;
+
+        //10:          
+          theThing->acc_space.x = AccGyroMagEul_SIZE - theThing->acc.x.length();
+          theThing->gyro_space.x = AccGyroMagEul_SIZE - theThing->gyro.x.length();
+          theThing->mag_space.x = AccGyroMagEul_SIZE - theThing->mag.x.length();
+          //break;
+
+        //11:          
+          theThing->acc_space.y = AccGyroMagEul_SIZE - theThing->acc.y.length();
+          theThing->gyro_space.y = AccGyroMagEul_SIZE - theThing->gyro.y.length();
+          theThing->mag_space.y = AccGyroMagEul_SIZE - theThing->mag.y.length();
+         // break;
+
+        //12:          
+          theThing->acc_space.z = AccGyroMagEul_SIZE - theThing->acc.z.length();
+          theThing->gyro_space.z = AccGyroMagEul_SIZE - theThing->gyro.z.length();
+          theThing->mag_space.z = AccGyroMagEul_SIZE - theThing->mag.z.length();
+          //break;
+
+        //14:
+          theThing->pressure_space = PRESSURE_SIZE - theThing->pressure.length();
+          //break;
+
+        //15:
+          theThing->eul_space.x = AccGyroMagEul_SIZE - theThing->eul.x.length();
+          theThing->temperature_space = TempHumid_SIZE - theThing->temperature.length();
+         //break;
+
+        //16:          
+          theThing->eul_space.y = AccGyroMagEul_SIZE - theThing->eul.y.length();
+          theThing->humidity_space = TempHumid_SIZE - theThing->humidity.length();
+         // break;
+
+        //17:          
+          theThing->eul_space.z = AccGyroMagEul_SIZE - theThing->eul.z.length();
+          theThing->pitot_space = PITOT_SIZE - theThing->pitot.length();
+          //break;
+
+        //21:          
+          theThing->statSpace.line1 = 39 - theThing->statBuff.line1.length();
+          //break;
+
+        //22:          
+          theThing->statSpace.line2 = 39 - theThing->statBuff.line2.length();
+          //break;
+
+        //23:          
+          theThing->statSpace.line3 = 39 - theThing->statBuff.line3.length();
+          //break;
+
+        //24:          
+          theThing->statSpace.line4 = 39 - theThing->statBuff.line4.length();
+          //break;
+
+        //25:          
+          theThing->statSpace.line5 = 39 - theThing->statBuff.line5.length();
+          //break;
+
+        //26:          
+          theThing->statSpace.line6 = 39 - theThing->statBuff.line6.length();
+          //break;
+
+        //27:          
+          theThing->statSpace.line7 = 39 - theThing->statBuff.line7.length();
+          //break;
+
+        //28:          
+          theThing->statSpace.line8 = 39 - theThing->statBuff.line8.length();
+          //break;
+
+        //default:
+          //break;
+      //};
     }
 
     //*************************************************************************************************************
@@ -2853,7 +3108,7 @@
         }                             //
     
         // HEADER SETUP WTIH NAMES OF THINGS
-        usb.println(F("***************************************||"));
+        usb.println(F("|||||||||||||||||||||||||||||||||||||||||"));
         uint8_t Name_spaceUsed = theThing->Name_space + theThing->Name.length();
         while(theThing->Name_space > 0)
         {
@@ -2868,6 +3123,7 @@
         }
         usb.println(F("|| "));
         usb.println(F("***************************************||"));
+        usb.println(F("                                       ||"));
         
       
         // LINE ONE : LATITUDE
@@ -3051,6 +3307,80 @@
         }                                     //
         usb.print(theThing->pitot);                 // print the value
         usb.println(F("      || "));            // print the rest of the line
+
+
+        // LINE FOURTEEN : DIVIDER BETWEEEN HUD AND THE STATUS BOX
+        usb.println(F("                                       ||"));
+        usb.println(F("***************************************||"));
+        usb.println(F("                                       ||"));
+
+        // LINE FIFTHTEEN : LINE 1 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line1);          // print the line
+        for(int i = 0; i < theThing->statSpace.line1; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE SIXTEEN : LINE 2 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line2);          // print the line
+        for(int i = 0; i < theThing->statSpace.line2; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE SEVENTEEN : LINE 3 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line3);          // print the line
+        for(int i = 0; i < theThing->statSpace.line3; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE EIGHTEEN : LINE 4 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line4);          // print the line
+        for(int i = 0; i < theThing->statSpace.line4; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE NINETEEN : LINE 5 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line5);          // print the line
+        for(int i = 0; i < theThing->statSpace.line5; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE TWENTY : LINE 6 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line6);          // print the line
+        for(int i = 0; i < theThing->statSpace.line6; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE TWENTY-ONE : LINE 7 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line7);          // print the line
+        for(int i = 0; i < theThing->statSpace.line7; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+
+        // LINE TWENTY-TWO : LINE 8 OF THE STATUS BOX
+        usb.print(theThing->statBuff.line8);          // print the line
+        for(int i = 0; i < theThing->statSpace.line8; i++)  // print the alignment spaces
+        {
+          usb.print(F(" "));
+        }
+        usb.println(F("|| "));                        // print the end frame
+        usb.println(F("                                       ||"));
+
+        // LINE TWENTY-THREE : LINE BOTTOM BORDER OF THE STATUS BOX
+        usb.println(F("|||||||||||||||||||||||||||||||||||||||||"));
     }
 
     //*************************************************************************************************************
@@ -3058,381 +3388,589 @@
     //*************************************************************************************************************
     void printThings(thing *thing1, thing *thing2)
     {
-        for(int i = 0; i < 50; i++)   //
-        {                             //
-          usb.println(F(""));         // clear the print area
-        }                             //
-    
-    
-        // HEADER SETUP WTIH NAMES OF THINGS
-        usb.println(F("***************************************||****************************************||"));
-        uint8_t Name_spaceUsed = thing1->Name_space + thing1->Name.length();
-        while(thing1->Name_space > 0)
-        {
-          usb.print(F(" "));
-          thing1->Name_space--;
-        }
-        usb.print(thing1->Name);
-        Name_spaceUsed = 39 - Name_spaceUsed;
-        while(Name_spaceUsed > 0)
-        {
-          usb.print(F(" "));
-          Name_spaceUsed--;
-        }
-        usb.print(F("|| "));
-    
-        Name_spaceUsed = thing2->Name_space + thing2->Name.length();
-        while(thing2->Name_space > 0)
-        {
-          usb.print(F(" "));
-          thing2->Name_space--;
-        }
-        usb.print(thing2->Name);
-        Name_spaceUsed = 39 - Name_spaceUsed;
-        while(Name_spaceUsed > 0)
-        {
-          usb.print(F(" "));
-          Name_spaceUsed--;
-        }
-        usb.println(F("|| "));
-        usb.println(F("***************************************||****************************************||"));
-    
+      uint8_t Name_spaceUsed;
+      //switch(print_counter)
+      //{
+        //1:
+          for(int i = 0; i < 50; i++)   //
+          {                             //
+            usb.println(F(""));         // clear the print area
+          }                             //
       
-        // LINE ONE : LATITUDE
-        usb.print(F("Lat:  "));       // print the label
-        while(thing1->lat_space > 0)      // print the required space to stay aligned
-        {                             //
-          usb.print(F(" "));          //
-          thing1->lat_space--;            //
-        }                             //
-        usb.print(thing1->lat); usb.print(F("                      || "));  // print the rest of the line
-        usb.print(F("Lat:  "));       // print the label
-        while(thing2->lat_space > 0)      // print the required space to stay aligned
-        {                             //
-          usb.print(F(" "));          //
-          thing2->lat_space--;            //
-        }                             //
-        usb.print(thing2->lat); usb.println(F("                      || "));  // print the rest of the line
+      
+          // HEADER SETUP WTIH NAMES OF THINGS
+          usb.println(F("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"));
+         // break;
+          
+        //2:
+          Name_spaceUsed = thing1->Name_space + thing1->Name.length();
+          for(int i = 0 ; i < thing1->Name_space; i++)
+          {
+            usb.print(F(" "));
+          }
+          usb.print(thing1->Name);
+          Name_spaceUsed = 39 - Name_spaceUsed;
+          for(int i = 0 ; i < Name_spaceUsed; i++)
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));
+      
+          Name_spaceUsed = thing2->Name_space + thing2->Name.length();
+          for(int i = 0 ; i < thing2->Name_space; i++)
+          {
+            usb.print(F(" "));
+          }
+          usb.print(thing2->Name);
+          Name_spaceUsed = 39 - Name_spaceUsed;
+          for(int i = 0 ; i < Name_spaceUsed; i++)
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("|| "));
+          //break;
+
+        //3:
+          usb.println(F("***************************************||****************************************||"));
+         // break;
+
+        //4:
+          usb.println(F("                                       ||                                        ||"));
+         // break;
+    
+        //5:
+          // LINE ONE : LATITUDE
+          usb.print(F("Lat:  "));       // print the label
+          for(int i = 0; i< thing1->lat_space; i++)      // print the required space to stay aligned
+          {                             //
+            usb.print(F(" "));          //
+          }                             //
+          usb.print(thing1->lat); usb.print(F("                      || "));  // print the rest of the line
+          usb.print(F("Lat:  "));       // print the label
+          for(int i = 0; i< thing2->lat_space; i++)      // print the required space to stay aligned
+          {                             //
+            usb.print(F(" "));          //
+          }                             //
+          usb.print(thing2->lat); usb.println(F("                      || "));  // print the rest of the line
+          //break;
+          
+        //6:
+          // LINE TWO : LONGITUDE
+          usb.print(F("Lon: "));        // print the label
+          for(int i = 0; i< thing1->lon_space; i++)      // print the required space to stay aligned
+          {                             //
+            usb.print(F(" "));          //
+          }                             //
+          usb.print(thing1->lon); usb.print(F("                      || "));  // print the rest of the line
+          usb.print(F("Lon: "));        // print the label
+          for(int i = 0; i< thing2->lon_space; i++)      // print the required space to stay aligned
+          {                             //
+            usb.print(F(" "));          //
+          }                             //
+          usb.print(thing2->lon); usb.println(F("                      || "));  // print the rest of the line
+          //break;
+
+        //7:
+          // LINE THREE : ELEVATION
+          usb.print(F("Elev:    "));    // print the label
+          for(int i = 0; i < thing1->elev_space; i++)     // print the required space to stay aligned
+          {                             //
+            usb.print(F(" "));          //
+          }                             //
+          usb.print(thing1->elev); usb.print(F("                      || "));  // print the rest of the line
+          usb.print(F("Elev:    "));    // print the label
+          for(int i = 0; i < thing2->elev_space; i++)     // print the required space to stay aligned
+          {                             //
+            usb.print(F(" "));          //
+          }                             //
+          usb.print(thing2->elev); usb.println(F("                      || "));  // print the rest of the line
+         // break;
+
+        //8:
+          // LINE FOUR : BLANK
+          usb.println(F("                                       ||                                        ||"));
+          //break;
+
+        //9:
+          // LINE FIVE : ACC/GYRO/MAG LABELS
+          usb.println(F("ACC           GYRO          MAG        || ACC           GYRO          MAG        ||"));
+          
+        //10:
+          // LINE SIX : ACC/GYRO/MAG X VALUES
+          usb.print(F("X: "));          // print the label                          //
+          for(int i = 0; i < thing1->acc_space.x; i++)    // print the required space to stay aligned //
+          {                             //                                          // 1ACC.X
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->acc.x);         // print the value                          //
         
-      
-        // LINE TWO : LONGITUDE
-        usb.print(F("Lon: "));        // print the label
-        while(thing1->lon_space > 0)      // print the required space to stay aligned
-        {                             //
-          usb.print(F(" "));          //
-          thing1->lon_space--;            //
-        }                             //
-        usb.print(thing1->lon); usb.print(F("                      || "));  // print the rest of the line
-        usb.print(F("Lon: "));        // print the label
-        while(thing2->lon_space > 0)      // print the required space to stay aligned
-        {                             //
-          usb.print(F(" "));          //
-          thing2->lon_space--;            //
-        }                             //
-        usb.print(thing2->lon); usb.println(F("                      || "));  // print the rest of the line
-      
-        // LINE THREE : ELEVATION
-        usb.print(F("Elev:    "));    // print the label
-        while(thing1->elev_space > 0)     // print the required space to stay aligned
-        {                             //
-          usb.print(F(" "));          //
-          thing1->elev_space--;           //
-        }                             //
-        usb.print(thing1->elev); usb.print(F("                      || "));  // print the rest of the line
-        usb.print(F("Elev:    "));    // print the label
-        while(thing2->elev_space > 0)     // print the required space to stay aligned
-        {                             //
-          usb.print(F(" "));          //
-          thing2->elev_space--;           //
-        }                             //
-        usb.print(thing2->elev); usb.println(F("                      || "));  // print the rest of the line
-      
-        // LINE FOUR : BLANK
-        usb.println(F("                                       ||                                        ||"));
-      
-        // LINE FIVE : ACC/GYRO/MAG LABELS
-        usb.println(F("ACC           GYRO          MAG        || ACC           GYRO          MAG        ||"));
-      
-        // LINE SIX : ACC/GYRO/MAG X VALUES
-        usb.print(F("X: "));          // print the label                          //
-        while(thing1->acc_space.x > 0)    // print the required space to stay aligned //
-        {                             //                                          // 1ACC.X
-          usb.print(F(" "));          //                                          //
-          thing1->acc_space.x--;          //                                          //
-        }                             //                                          //
-        usb.print(thing1->acc.x);         // print the value                          //
-      
-        usb.print(F("    X: "));         // print the label                          //
-        while(thing1->gyro_space.x > 0)   // print the required space to stay aligned //
-        {                             //                                          // 1GYRO.X
-          usb.print(F(" "));          //                                          //
-          thing1->gyro_space.x--;         //                                          //
-        }                             //                                          //
-        usb.print(thing1->gyro.x);        // print the value                          //
-      
-        usb.print(F("    X: "));         // print the label                          //
-        while(thing1->mag_space.x > 0)    // print the required space to stay aligned //
-        {                             //                                          // 1MAG.X
-          usb.print(F(" "));          //                                          //
-          thing1->mag_space.x--;          //                                          //
-        }                             //                                          //
-        usb.print(thing1->mag.x);         // print the value                          //
-        usb.print(F(" || "));       // print the rest of the line               //
-    
-        usb.print(F("X: "));          // print the label                          //
-        while(thing2->acc_space.x > 0)    // print the required space to stay aligned //
-        {                             //                                          // 2ACC.X
-          usb.print(F(" "));          //                                          //
-          thing2->acc_space.x--;          //                                          //
-        }                             //                                          //
-        usb.print(thing2->acc.x);         // print the value                          //
-      
-        usb.print(F("    X: "));         // print the label                          //
-        while(thing2->gyro_space.x > 0)   // print the required space to stay aligned //
-        {                             //                                          // 2GYRO.X
-          usb.print(F(" "));          //                                          //
-          thing2->gyro_space.x--;         //                                          //
-        }                             //                                          //
-        usb.print(thing2->gyro.x);        // print the value                          //
-      
-        usb.print(F("    X: "));         // print the label                          //
-        while(thing2->mag_space.x > 0)    // print the required space to stay aligned //
-        {                             //                                          // 2MAG.X
-          usb.print(F(" "));          //                                          //
-          thing2->mag_space.x--;          //                                          //
-        }                             //                                          //
-        usb.print(thing2->mag.x);         // print the value                          //
-        usb.println(F(" || "));       // print the rest of the line               //
+          usb.print(F("    X: "));         // print the label                          //
+          for(int i = 0; i < thing1->gyro_space.x; i++)   // print the required space to stay aligned //
+          {                             //                                          // 1GYRO.X
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->gyro.x);        // print the value                          //
         
-     
-        // LINE SEVEN : ACC/GYRO/MAG Y VALUES
-        usb.print(F("Y: "));          // print the label                          //
-        while(thing1->acc_space.y > 0)    // print the required space to stay aligned //
-        {                             //                                          // 1ACC.Y
-          usb.print(F(" "));          //                                          //
-          thing1->acc_space.y--;          //                                          //
-        }                             //                                          //
-        usb.print(thing1->acc.y);         // print the value                          //
+          usb.print(F("    X: "));         // print the label                          //
+          for(int i = 0; i < thing1->mag_space.x; i++)    // print the required space to stay aligned //
+          {                             //                                          // 1MAG.X
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->mag.x);         // print the value                          //
+          usb.print(F(" || "));       // print the rest of the line               //
       
-        usb.print(F("    Y: "));         // print the label                          //
-        while(thing1->gyro_space.y > 0)   // print the required space to stay aligned //
-        {                             //                                          // 1GYRO.Y
-          usb.print(F(" "));          //                                          //
-          thing1->gyro_space.y--;         //                                          //
-        }                             //                                          //
-        usb.print(thing1->gyro.y);        // print the value                          //
-      
-        usb.print(F("    Y: "));         // print the label                          //
-        while(thing1->mag_space.y > 0)    // print the required space to stay aligned //
-        {                             //                                          // 1MAG.Y
-          usb.print(F(" "));          //                                          //
-          thing1->mag_space.y--;          //                                          //
-        }                             //                                          //
-        usb.print(thing1->mag.y);         // print the value                          //
-        usb.print(F(" || "));       // print the rest of the line               //
-    
-        usb.print(F("Y: "));          // print the label                          //
-        while(thing2->acc_space.y > 0)    // print the required space to stay aligned //
-        {                             //                                          // 2ACC.Y
-          usb.print(F(" "));          //                                          //
-          thing2->acc_space.y--;          //                                          //
-        }                             //                                          //
-        usb.print(thing2->acc.y);         // print the value                          //
-      
-        usb.print(F("    Y: "));         // print the label                          //
-        while(thing2->gyro_space.y > 0)   // print the required space to stay aligned //
-        {                             //                                          // 2GYRO.Y
-          usb.print(F(" "));          //                                          //
-          thing2->gyro_space.y--;         //                                          //
-        }                             //                                          //
-        usb.print(thing2->gyro.y);        // print the value                          //
-      
-        usb.print(F("    Y: "));         // print the label                          //
-        while(thing2->mag_space.y > 0)    // print the required space to stay aligned //
-        {                             //                                          // 2MAG.Y
-          usb.print(F(" "));          //                                          //
-          thing2->mag_space.y--;          //                                          //
-        }                             //                                          //
-        usb.print(thing2->mag.y);         // print the value                          //
-        usb.println(F(" || "));       // print the rest of the line               //
-    
+          usb.print(F("X: "));          // print the label                          //
+          for(int i = 0; i < thing2->acc_space.x; i++)    // print the required space to stay aligned //
+          {                             //                                          // 2ACC.X
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->acc.x);         // print the value                          //
         
-        // LINE EIGHT : ACC/GYRO/MAG Z VALUES
-        usb.print(F("Z: "));          // print the label                          //
-        while(thing1->acc_space.z > 0)    // print the required space to stay aligned //
-        {                             //                                          // 1ACC.Z
-          usb.print(F(" "));          //                                          //
-          thing1->acc_space.z--;          //                                          //
-        }                             //                                          //
-        usb.print(thing1->acc.z);         // print the value                          //
-      
-        usb.print(F("    Z: "));         // print the label                          //
-        while(thing1->gyro_space.z > 0)   // print the required space to stay aligned //
-        {                             //                                          // 1GYRO.Z
-          usb.print(F(" "));          //                                          //
-          thing1->gyro_space.z--;         //                                          //
-        }                             //                                          //
-        usb.print(thing1->gyro.z);        // print the value                          //
-      
-        usb.print(F("    Z: "));         // print the label                          //
-        while(thing1->mag_space.z > 0)    // print the required space to stay aligned //
-        {                             //                                          // 1MAG.Z
-          usb.print(F(" "));          //                                          //
-          thing1->mag_space.z--;          //                                          //
-        }                             //                                          //
-        usb.print(thing1->mag.z);         // print the value                          //
-        usb.print(F(" || "));       // print the rest of the line               //
-    
-        usb.print(F("Z: "));          // print the label                          //
-        while(thing2->acc_space.z > 0)    // print the required space to stay aligned //
-        {                             //                                          // 2ACC.Z
-          usb.print(F(" "));          //                                          //
-          thing2->acc_space.z--;          //                                          //
-        }                             //                                          //
-        usb.print(thing2->acc.z);         // print the value                          //
-      
-        usb.print(F("    Z: "));         // print the label                          //
-        while(thing2->gyro_space.z > 0)   // print the required space to stay aligned //
-        {                             //                                          // 2GYRO.Z
-          usb.print(F(" "));          //                                          //
-          thing2->gyro_space.z--;         //                                          //
-        }                             //                                          //
-        usb.print(thing2->gyro.z);        // print the value                          //
-      
-        usb.print(F("    Z: "));         // print the label                          //
-        while(thing2->mag_space.z > 0)    // print the required space to stay aligned //
-        {                             //                                          // 2MAG.Z
-          usb.print(F(" "));          //                                          //
-          thing2->mag_space.z--;          //                                          //
-        }                             //                                          //
-        usb.print(thing2->mag.z);         // print the value                          //
-        usb.println(F(" || "));       // print the rest of the line               //
-    
+          usb.print(F("    X: "));         // print the label                          //
+          for(int i = 0; i < thing2->gyro_space.x; i++)   // print the required space to stay aligned //
+          {                             //                                          // 2GYRO.X
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->gyro.x);        // print the value                          //
         
-        // LINE NINE : BLANK
-        usb.println(F("                                       ||                                        ||"));
+          usb.print(F("    X: "));         // print the label                          //
+          for(int i = 0; i < thing2->mag_space.x; i++)    // print the required space to stay aligned //
+          {                             //                                          // 2MAG.X
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->mag.x);         // print the value                          //
+          usb.println(F(" || "));       // print the rest of the line               //
+         // break;
+        
+        //11:
+          // LINE SEVEN : ACC/GYRO/MAG Y VALUES
+          usb.print(F("Y: "));          // print the label                          //
+          for(int i = 0; i < thing1->acc_space.y; i++)    // print the required space to stay aligned //
+          {                             //                                          // 1ACC.Y
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->acc.y);         // print the value                          //
+        
+          usb.print(F("    Y: "));         // print the label                          //
+          for(int i = 0; i < thing1->gyro_space.y; i++)   // print the required space to stay aligned //
+          {                             //                                          // 1GYRO.Y
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->gyro.y);        // print the value                          //
+        
+          usb.print(F("    Y: "));         // print the label                          //
+          for(int i = 0; i < thing1->mag_space.y; i++)    // print the required space to stay aligned //
+          {                             //                                          // 1MAG.Y
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->mag.y);         // print the value                          //
+          usb.print(F(" || "));       // print the rest of the line               //
       
+          usb.print(F("Y: "));          // print the label                          //
+          for(int i = 0; i < thing2->acc_space.y; i++)    // print the required space to stay aligned //
+          {                             //                                          // 2ACC.Y
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->acc.y);         // print the value                          //
+        
+          usb.print(F("    Y: "));         // print the label                          //
+          for(int i = 0; i < thing2->gyro_space.y; i++)   // print the required space to stay aligned //
+          {                             //                                          // 2GYRO.Y
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->gyro.y);        // print the value                          //
+        
+          usb.print(F("    Y: "));         // print the label                          //
+          for(int i = 0; i < thing2->mag_space.y; i++)    // print the required space to stay aligned //
+          {                             //                                          // 2MAG.Y
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->mag.y);         // print the value                          //
+          usb.println(F(" || "));       // print the rest of the line               //
+         // break;
+    
+        //12:
+          // LINE EIGHT : ACC/GYRO/MAG Z VALUES
+          usb.print(F("Z: "));          // print the label                          //
+          for(int i = 0; i < thing1->acc_space.z; i++)    // print the required space to stay aligned //
+          {                             //                                          // 1ACC.Z
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->acc.z);         // print the value                          //
+        
+          usb.print(F("    Z: "));         // print the label                          //
+          for(int i = 0; i < thing1->gyro_space.z; i++)   // print the required space to stay aligned //
+          {                             //                                          // 1GYRO.Z
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->gyro.z);        // print the value                          //
+        
+          usb.print(F("    Z: "));         // print the label                          //
+          for(int i = 0; i < thing1->mag_space.z; i++)    // print the required space to stay aligned //
+          {                             //                                          // 1MAG.Z
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing1->mag.z);         // print the value                          //
+          usb.print(F(" || "));       // print the rest of the line               //
       
-        // LINE TEN : EULER ANGLE LABEL AND PRESSURE
-        usb.print(F("EUL              PRESS: "));   // print the labels
-        while(thing1->pressure_space > 0)         // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->pressure_space--;               //
-        }                                     //
-        usb.print(thing1->pressure);              // print the value
-        usb.print(F("      || "));            // print the rest of the line
-        usb.print(F("EUL              PRESS: "));   // print the labels
-        while(thing2->pressure_space > 0)         // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->pressure_space--;               //
-        }                                     //
-        usb.print(thing2->pressure);              // print the value
-        usb.println(F("      || "));            // print the rest of the line
+          usb.print(F("Z: "));          // print the label                          //
+          for(int i = 0; i < thing2->acc_space.z; i++)    // print the required space to stay aligned //
+          {                             //                                          // 2ACC.Z
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->acc.z);         // print the value                          //
+        
+          usb.print(F("    Z: "));         // print the label                          //
+          for(int i = 0; i < thing2->gyro_space.z; i++)   // print the required space to stay aligned //
+          {                             //                                          // 2GYRO.Z
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->gyro.z);        // print the value                          //
+        
+          usb.print(F("    Z: "));         // print the label                          //
+          for(int i = 0; i < thing2->mag_space.z; i++)    // print the required space to stay aligned //
+          {                             //                                          // 2MAG.Z
+            usb.print(F(" "));          //                                          //
+          }                             //                                          //
+          usb.print(thing2->mag.z);         // print the value                          //
+          usb.println(F(" || "));       // print the rest of the line               //
+          //break;
     
+        //13:
+          // LINE NINE : BLANK
+          usb.println(F("                                       ||                                        ||"));
+          //break;
       
-        // LINE ELEVEN : EULER ANGLE X AND TEMP
-        usb.print(F("X: "));   // print the labels
-        while(thing1->eul_space.x > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->eul_space.x--;                  //
-        }                                     //
-        usb.print(thing1->eul.x);                 // print the value
-        usb.print(F("        TEMP:     "));        // print the next label
-        while(thing1->temperature_space > 0)      // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->temperature_space--;            //
-        }                                     //
-        usb.print(thing1->temperature);           // print the value
-        usb.print(F("      || "));            // print the rest of the line
+        //14:
+          // LINE TEN : EULER ANGLE LABEL AND PRESSURE
+          usb.print(F("EUL              PRESS: "));   // print the labels
+          for(int i = 0; i < thing1->pressure_space; i++)         // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->pressure);              // print the value
+          usb.print(F("      || "));            // print the rest of the line
+          usb.print(F("EUL              PRESS: "));   // print the labels
+          for(int i = 0; i < thing2->pressure_space; i++)         // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing2->pressure);              // print the value
+          usb.println(F("      || "));            // print the rest of the line
+          //break;
     
-        usb.print(F("X: "));   // print the labels
-        while(thing2->eul_space.x > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->eul_space.x--;                  //
-        }                                     //
-        usb.print(thing2->eul.x);                 // print the value
-        usb.print(F("        TEMP:     "));        // print the next label
-        while(thing2->temperature_space > 0)      // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->temperature_space--;            //
-        }                                     //
-        usb.print(thing2->temperature);           // print the value
-        usb.println(F("      || "));            // print the rest of the line
+        //15:
+          // LINE ELEVEN : EULER ANGLE X AND TEMP
+          usb.print(F("X: "));   // print the labels
+          for(int i = 0; i < thing1->eul_space.x; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->eul.x);                 // print the value
+          usb.print(F("        TEMP:     "));        // print the next label
+          for(int i = 0; i < thing1->temperature_space; i++)      // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->temperature);           // print the value
+          usb.print(F("      || "));            // print the rest of the line
       
-        // LINE TWELVE : EULER ANGLE Y AND HUMIDITY 
-        usb.print(F("Y: "));   // print the labels
-        while(thing1->eul_space.y > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->eul_space.y--;                  //
-        }                                     //
-        usb.print(thing1->eul.y);                 // print the value
-        usb.print(F("       HUMID:     "));        // print the next label
-        while(thing1->humidity_space > 0)         // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->humidity_space--;
-        }                                     //
-        usb.print(thing1->humidity);              // print the value
-        usb.print(F("      || "));            // print the rest of the line
+          usb.print(F("X: "));   // print the labels
+          for(int i = 0; i < thing2->eul_space.x; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+            thing2->eul_space.x--;                  //
+          }                                     //
+          usb.print(thing2->eul.x);                 // print the value
+          usb.print(F("        TEMP:     "));        // print the next label
+          for(int i = 0; i < thing2->temperature_space; i++)      // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing2->temperature);           // print the value
+          usb.println(F("      || "));            // print the rest of the line
+         // break;
+          
+        //16:
+          // LINE TWELVE : EULER ANGLE Y AND HUMIDITY 
+          usb.print(F("Y: "));   // print the labels
+          for(int i = 0; i < thing1->eul_space.y; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->eul.y);                 // print the value
+          usb.print(F("       HUMID:     "));        // print the next label
+          for(int i = 0; i < thing1->humidity_space; i++)         // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->humidity);              // print the value
+          usb.print(F("      || "));            // print the rest of the line
+      
+          usb.print(F("Y: "));   // print the labels
+          for(int i = 0; i < thing2->eul_space.y; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+
+          }                                     //
+          usb.print(thing2->eul.y);                 // print the value
+          usb.print(F("       HUMID:     "));        // print the next label
+          for(int i = 0; i < thing2->humidity_space; i++)         // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing2->humidity);              // print the value
+          usb.println(F("      || "));            // print the rest of the line
+         // break;
     
-        usb.print(F("Y: "));   // print the labels
-        while(thing2->eul_space.y > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->eul_space.y--;                  //
-        }                                     //
-        usb.print(thing2->eul.y);                 // print the value
-        usb.print(F("       HUMID:     "));        // print the next label
-        while(thing2->humidity_space > 0)         // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->humidity_space--;
-        }                                     //
-        usb.print(thing2->humidity);              // print the value
-        usb.println(F("      || "));            // print the rest of the line
-    
-    
-        // LINE THIRTEEN : EULER ANGLE Z AND PITOT READING
-        usb.print(F("Z: "));   // print the labels
-        while(thing1->eul_space.z > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->eul_space.z--;                  //
-        }                                     //
-        usb.print(thing1->eul.z);                 // print the value
-        usb.print(F("       PITOT:  "));           // print the next label
-        while(thing1->pitot_space > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing1->pitot_space--;                  //
-        }                                     //
-        usb.print(thing1->pitot);                 // print the value
-        usb.print(F("      || "));            // print the rest of the line
-    
-        usb.print(F("Z: "));   // print the labels
-        while(thing2->eul_space.z > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->eul_space.z--;                  //
-        }                                     //
-        usb.print(thing2->eul.z);                 // print the value
-        usb.print(F("       PITOT:  "));           // print the next label
-        while(thing2->pitot_space > 0)            // print the required space for alignment
-        {                                     //
-          usb.print(F(" "));                  //
-          thing2->pitot_space--;                  //
-        }                                     //
-        usb.print(thing2->pitot);                 // print the value
-        usb.println(F("      || "));            // print the rest of the line
+        //17:
+          // LINE THIRTEEN : EULER ANGLE Z AND PITOT READING
+          usb.print(F("Z: "));   // print the labels
+          for(int i = 0; i < thing1->eul_space.z; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->eul.z);                 // print the value
+          usb.print(F("       PITOT:  "));           // print the next label
+          for(int i = 0; i < thing1->pitot_space; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing1->pitot);                 // print the value
+          usb.print(F("      || "));            // print the rest of the line
+      
+          usb.print(F("Z: "));   // print the labels
+          for(int i = 0; i < thing2->eul_space.z; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing2->eul.z);                 // print the value
+          usb.print(F("       PITOT:  "));           // print the next label
+          for(int i = 0; i < thing1->pitot_space; i++)            // print the required space for alignment
+          {                                     //
+            usb.print(F(" "));                  //
+          }                                     //
+          usb.print(thing2->pitot);                 // print the value
+          usb.println(F("      || "));            // print the rest of the line
+         // break;
+
+        //18:
+          // LINE FOURTEEN : DIVIDER BETWEEEN HUD AND THE STATUS BOX
+          usb.println(F("                                       ||                                        ||"));
+         // break;
+
+        //19:
+          usb.println(F("***************************************||****************************************||"));
+         // break;
+
+        //20:
+          usb.println(F("                                       ||                                        ||"));
+         // break;
+
+        //21:
+          // LINE FIFTEEN : LINE 1 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line1);          // print the line
+          for(int i = 0; i < thing1->statSpace.line1; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line1);          // print the line
+          for(int i = 0; i < thing2->statSpace.line1; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+         // break;
+
+        //22:
+          // LINE SIXTEEN : LINE 2 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line2);          // print the line
+          for(int i = 0; i < thing1->statSpace.line2; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line2);          // print the line
+          for(int i = 0; i < thing2->statSpace.line2; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+          //break;
+
+        //23:
+          // LINE SEVENTEEN : LINE 3 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line3);          // print the line
+          for(int i = 0; i < thing1->statSpace.line3; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line3);          // print the line
+          for(int i = 0; i < thing2->statSpace.line3; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+          //break;
+        
+        //24:
+          // LINE EIGHTEEN : LINE 4 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line4);          // print the line
+          for(int i = 0; i < thing1->statSpace.line4; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line4);          // print the line
+          for(int i = 0; i < thing2->statSpace.line4; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+          //break;
+        
+        //25:
+          // LINE NINETEEN : LINE 5 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line5);          // print the line
+          for(int i = 0; i < thing1->statSpace.line5; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line5);          // print the line
+          for(int i = 0; i < thing2->statSpace.line5; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+          //break;
+        
+        //26:
+          // LINE TWENTY : LINE 6 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line6);          // print the line
+          for(int i = 0; i < thing1->statSpace.line6; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line6);          // print the line
+          for(int i = 0; i < thing2->statSpace.line6; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+          //break;
+        
+        //27:
+          // LINE TWENTY-ONE : LINE 7 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line7);          // print the line
+          for(int i = 0; i < thing1->statSpace.line7; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line7);          // print the line
+          for(int i = 0; i < thing2->statSpace.line7; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+         // break;
+        
+        //28:
+          // LINE TWENTY-TWO : LINE 8 OF THE STATUS BOX
+          usb.print(thing1->statBuff.line8);          // print the line
+          for(int i = 0; i < thing1->statSpace.line8; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.print(F("|| "));                        // print the end frame
+          usb.print(thing2->statBuff.line8);          // print the line
+          for(int i = 0; i < thing2->statSpace.line8; i++)  // print the alignment spaces
+          {
+            usb.print(F(" "));
+          }
+          usb.println(F("||"));                        // print the end frame
+         // break;
+        
+        //29:
+          // LINE TWENTY-THREE : LINE BOTTOM BORDER OF THE STATUS BOX
+          usb.println(F(">>                                     ||>>                                      ||"));
+         // break;
+
+        //30:
+          usb.println(F("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"));
+      //};   
     }                                
 
+    //*************************************************************************************************************
+    //*******                                   addStat
+    //*************************************************************************************************************
+    void addStat(thing *thisThing, uint8_t cmdType, uint8_t cmdVal, bool state)
+    {
+      statRollover(thisThing);
+      thisThing->statBuff.line8 = thisThing->Name;
+      thisThing->statBuff.line8 += F(":");
+      thisThing->statBuff.line8 += cmdType;
+      thisThing->statBuff.line8 += cmdVal;
+      thisThing->statBuff.line8 += F(":");
+      if(state)
+      {
+        thisThing->statBuff.line8 += F("success");
+      }
+      else
+      {
+        thisThing->statBuff.line8 += F("failed");
+      }
+    }
+
+    void addStat(thing *thisThing, String cmd, String msg) 
+    {
+      statRollover(thisThing);
+      thisThing->statBuff.line8 = thisThing->Name;
+      thisThing->statBuff.line8 += F(":");
+      thisThing->statBuff.line8 += cmd;
+      thisThing->statBuff.line8 += F(":");
+      thisThing->statBuff.line8 += msg;
+    }
+
+    void addStat(String cmd, thing *thisThing, bool state) 
+    {
+      statRollover(thisThing);
+      thisThing->statBuff.line8 = thisThing->Name;
+      thisThing->statBuff.line8 += F(":");
+      thisThing->statBuff.line8 += cmd;
+      thisThing->statBuff.line8 += F(":");
+      if(state)
+      {
+        thisThing->statBuff.line8 += F("success");
+      }
+      else
+      {
+        thisThing->statBuff.line8 += F("failed");
+      }
+    }
+
+    
+    //*************************************************************************************************************
+    //*******                                   statRollover
+    //*************************************************************************************************************
+    void statRollover(thing *thisThing)
+    {
+      thisThing->statBuff.line1 = thisThing->statBuff.line2;
+      thisThing->statBuff.line2 = thisThing->statBuff.line3;
+      thisThing->statBuff.line3 = thisThing->statBuff.line4;
+      thisThing->statBuff.line4 = thisThing->statBuff.line5;
+      thisThing->statBuff.line5 = thisThing->statBuff.line6;
+      thisThing->statBuff.line6 = thisThing->statBuff.line7;
+      thisThing->statBuff.line7 = thisThing->statBuff.line8;
+    }
+    
+    //*************************************************************************************************************
+    //*******                                 struct Thing intitializeProtothreads
+    //*************************************************************************************************************
     void initializeProtothreads(thing *thisThing)
     {
       PT_INIT(&(thisThing->packetGrab_PT));     // initialize the protothread for the initial packetGrab
@@ -3441,7 +3979,41 @@
       PT_INIT(&(thisThing->otherParse_PT));     // initialize the protothread for parsing the othersensor sentence and modifying struct members
       PT_INIT(&(thisThing->gpsWrite_PT));       // initialize the protothread for writing the GPS sentence to the appropriate SD file
       PT_INIT(&(thisThing->otherWrite_PT));     // initialize the protothread for writing the other sensors sentence to the appropriate SD file
+      PT_INIT(&(thisThing->parseInput_PT));       // initialize the protothread for figuring out user input
     }
+
+    //*************************************************************************************************************
+    //*******                                 struct Thing intitializeProtothreads
+    //*************************************************************************************************************
+    void runProtothreads(Xbee *xbee, thing *thisThing, XbeeSettings *theseSettings)
+    {
+      packetGrab_sense(xbee,thisThing);    // call the protothread for the initial packetGrab
+      packetParse_sense(thisThing);  // call the protothread for the packetparsing function
+      gpsParse_sense(thisThing);        // call the protothread for parsing the GPS sentence and modifying struct members
+      otherParse_sense(thisThing);    // call the protothread for parsing the othersensor sentence and modifying struct members
+      gpsWrite_sense(thisThing);        // call the protothread for writing the GPS sentence to the appropriate SD file
+      otherWrite_sense(thisThing);          // call the protothread for writing the other sensors sentence to the appropriate SD file
+      parseInput_sense(xbee,thisThing,theseSettings);  
+    }
+
+    void runProtothreads(Xbee *xbee1, Xbee *xbee2, thing *thing1, thing *thing2, XbeeSettings *settings1, XbeeSettings *settings2)
+    {
+      packetGrab_sense(xbee1,thing1);    // call the protothread for the initial packetGrab, 1
+      packetGrab_sense(xbee2,thing2);    // call the protothread for the initial packetGrab, 2
+      packetParse_sense(thing1);  // call the protothread for the packetparsing function, 1
+      packetParse_sense(thing2);  // call the protothread for the packetparsing function,2 
+      gpsParse_sense(thing1);        // call the protothread for parsing the GPS sentence and modifying struct members, 1 
+      gpsParse_sense(thing2);        // call the protothread for parsing the GPS sentence and modifying struct members, 2
+      otherParse_sense(thing1);    // call the protothread for parsing the othersensor sentence and modifying struct members, 1
+      otherParse_sense(thing2);    // call the protothread for parsing the othersensor sentence and modifying struct members, 2
+      gpsWrite_sense(thing1);        // call the protothread for writing the GPS sentence to the appropriate SD file, 1
+      gpsWrite_sense(thing2);        // call the protothread for writing the GPS sentence to the appropriate SD file, 2 
+      otherWrite_sense(thing1);          // call the protothread for writing the other sensors sentence to the appropriate SD file, 1
+      otherWrite_sense(thing2);          // call the protothread for writing the other sensors sentence to the appropriate SD file, 2  
+      parseInput_sense(xbee1,thing1,settings1);
+      parseInput_sense(xbee2,thing2,settings2); 
+    }
+    
     
     //*************************************************************************************************************
     //*******                              Watchdog Timer Stuff (SAMD51)
@@ -3510,20 +4082,23 @@
       wdt_disable(); // this prevents infinite loops from occuring with the watchdog reset                            // watchdog
       delay(5000);    // used to read setup debug code
 
-      usb.begin(115200);
+      usb.begin(2000000);
       usb.println(F("INITIALIZING"));
     
       pinMode(sdPower, OUTPUT);     //
       pinMode(imuPower, OUTPUT);    // Sets all power transistor gate pins and reset pins to OUTPUT mode
       pinMode(altPower, OUTPUT);    //
-      
-      
+                                    //
       digitalWrite(sdPower, HIGH);  //
       digitalWrite(imuPower, HIGH); // closes path to ground on all sensors, and sets the imu rst pin to HIGH
       digitalWrite(altPower, HIGH); //
-    
       delay(250);                   // allows time for the pin operations and sensors to come up 
-    
+
+      one.Name = XBEE1_NAME;        // 
+      #ifdef XB2_DEST_ADDR          // apply names to struct elements (using consts defined
+        two.Name = XBEE2_NAME;      // in the configuration section at top of sketch
+      #endif                        //
+      
       long xbeeTime = millis();
       while(XB1_NP != 256 && (millis() - xbeeTime <= 5000))
       {
@@ -3568,40 +4143,43 @@
         usb.println(F("makefiles worked!"));
       }                       
 
-      initializeProtothreads(&one);
+      initializeProtothreads(&one);       // 
+      #ifdef XB2_DEST_ADDR                //
+        initializeProtothreads(&two);     // Initialize all the protothreads
+      #endif                              //
+      PT_INIT(&printHud_PT);              //
+      PT_INIT(&userInput_PT);             // 
+
+      reserveMemory(&one);
       #ifdef XB2_DEST_ADDR
-        initializeProtothreads(&two);
+        reserveMemory(&two);
       #endif
     
       usb.println(F("Setup complete, entering loop!"));
     
-      wdt_enable(16384); 
+      wdt_enable(16384); // enable watchdog timer
     }
     
     //*************************************************************************************************************
     //*******                                           LOOP
     //*************************************************************************************************************
     void loop() {
-      xbeeCommand_sense(&xbeeCommandPT);
-      
-      xbee.protothreadLoop(); // enable watchdog timer
-    //  usb.print(F("1,"));
-    //  usb.println(freeMemory());
-     
-      fatalFix_sense(&fatalFixPT);
-    //  usb.print(F("10,"));
-    //  usb.println(freeMemory());
-      errorFix_sense(&errorFixPT);
-    //  usb.print(F("11,"));
-    //  usb.println(freeMemory());
-      write_sense(&writePT);
-    //  usb.print(F("12,"));
-    //  usb.println(freeMemory());
-      GPSwrite_sense(&GPSwritePT);
-    //  usb.print(F("13,"));
-    //  usb.println(freeMemory());
+
+      #ifndef XB2_DEST_ADDR
+        userInput_sense(&userInput_PT);
+        xbee1.protothreadLoop();
+        runProtothreads(&xbee1,&one,&xbee_set1);
+        HUD_sense(&printHud_PT);
+      #else
+        userInput_sense(&userInput_PT);
+        xbee1.protothreadLoop();
+        xbee2.protothreadLoop();
+        runProtothreads(&xbee1,&xbee2,&one,&two,&xbee_set1,&xbee_set2);
+        HUD_sense(&printHud_PT);
+      #endif
          
-      wdt_reset();    // watchdog
+      wdt_reset();    // watchdog reset
+      
     }
 
 
