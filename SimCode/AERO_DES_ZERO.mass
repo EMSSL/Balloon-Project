@@ -1,0 +1,24 @@
+!  
+! TCS AUTO Mass File 
+!  
+!xyz is the location of the item CG 
+!Ixx, ... are the inertias about the item CG 
+!  
+!x back 
+!y right 
+!z up 
+!  
+!x,y,z system must have origin as the AVL input file 
+!  
+Lunit =  1.0000  m 
+Munit =  1.0000  kg 
+Tunit =  1.0000  s 
+  
+g =  9.8100
+rho =  1.2250
+  
+! Mass	x	y	z	Ixx	Iyy	Izz	Ixy	Ixz	Iyz
+!  
+   0.50   0.15   0.80   0.00   1.00   1.00   1.00   1.00   1.00   1.00   ! wing
+   0.05   1.14   0.28   0.00   1.00   1.00   1.00   1.00   1.00   1.00   ! rudder
+   1.40   0.15  -1.57   0.00   1.00   1.00   1.00   0.00   0.00   0.00   ! electronics

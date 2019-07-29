@@ -1,0 +1,129 @@
+! *** *** Saurabh is AWESOME :D *** *** 
+! TCS_SUB 
+! *** *** Saurabh is AWESOME :D *** ***
+TCS
+! Mach
+0.0
+! Xsym	Ysym	Zsym
+0 0 0
+! Sref	Cref	Bref
+ 0.31  0.25  1.25
+! Xref	Yref	Zref
+  0.24   0.59   0.00
+! CDp
+0.025
+
+! *** *** Saurabh is AWESOME :D *** ***
+SURFACE 
+WING
+! Nchordwise	Cspace	Nspanwise	Sspace
+7 0.0 147 0.0 
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -1.25  0.00  0.25 0.0  
+NACA
+0015
+
+! *** *** Saurabh is AWESOME :D *** *** 
+! *** *** Saurabh is AWESOME :D *** *** 
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -1.20  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+ailer 1.0  0.70 0.0 0.0 0.0 -1.0
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.91  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+ailer 1.0  0.70 0.0 0.0 0.0 1.0
+
+! *** *** Saurabh is AWESOME :D *** *** 
+! *** *** Saurabh is AWESOME :D *** *** 
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.90  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+flap3 1.0  0.70 0.0 0.0 0.0 1.0
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.61  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+flap3 1.0  0.70 0.0 0.0 0.0 1.0
+
+! *** *** Saurabh is AWESOME :D *** *** 
+! *** *** Saurabh is AWESOME :D *** *** 
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.60  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+flap2 1.0  0.70 0.0 0.0 0.0 1.0
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.31  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+flap2 1.0  0.70 0.0 0.0 0.0 1.0
+
+! *** *** Saurabh is AWESOME :D *** *** 
+! *** *** Saurabh is AWESOME :D *** *** 
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.30  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+flap1 1.0  0.70 0.0 0.0 0.0 1.0
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05 -0.01  0.00  0.25 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+flap1 1.0  0.70 0.0 0.0 0.0 1.0
+
+! *** *** Saurabh is AWESOME :D *** *** 
+! *** *** Saurabh is AWESOME :D *** *** 
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.05  0.00  0.00  0.25 0.0  
+
+! *** *** Saurabh is AWESOME :D *** ***
+SURFACE 
+RUDDER
+! Nchordwise	Cspace	Nspanwise	Sspace
+7 0.0 37 0.0 
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.87 -0.44  0.00  0.14 0.0  
+NACA
+0015
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+ELEV 1.0  0.70 0.0 0.0 0.0 1.0
+
+SECTION
+! Xle	Yle	Zle	Chord	Ainc	Nspanwise	Sspace
+ 0.87  0.00  0.00  0.14 0.0  
+
+CONTROL
+! Cname	Cgain	Xhinge	HingeVec	SgnDup
+ELEV 1.0  0.70 0.0 0.0 0.0 1.0
+

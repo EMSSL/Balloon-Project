@@ -1,0 +1,30 @@
+LOAD subsc.avl
+MASS subsc.mass
+MSET
+0
+PLOP
+g
+
+OPER
+m
+v 6.1676
+mn 0.0000
+g 9.8100
+d 1.2250
+
+a a 5.0000
+b b 0.0000
+r r 0.0000
+p p 0.0000
+y y 0.0000
+d1 d1 0.0000
+d4 d4 0.0000
+d3 d3 0.0000
+d2 d2 0.0000
+d5 d5 0.0000
+x
+st subsc.stabs
+fs subsc.strip
+hm subsc.hinge
+
+QUIT

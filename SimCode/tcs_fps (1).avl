@@ -1,0 +1,156 @@
+!***************************************
+! Test case for TCS geometry
+!***************************************
+TCS
+!Mach
+ 0.0    
+!IYsym   IZsym   Zsym
+ 0       0       0.0
+!Sref    Cref    Bref
+5.0      1.0     5.0
+!Xref    Yref    Zref
+0.5      -2.23   0.0
+! CDp
+0.025
+
+!---------------------------------------
+!---------------------------------------
+SURFACE 
+WING 
+!Nchordwise  Cspace  Nspanwise  Sspace
+10 1.0 32 1.0
+
+SECTION
+! THIS IS THE WING TIP CROSS-SECTION
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0     -5.0   0.0     1.000   0.0   8          1.0
+NACA 
+0015
+
+!---------------------------------------
+
+SECTION
+! THIS IS THE FAR END OF CONTROL AILERON 1
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -4.75 0.0 1.00 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+aile1 1.0 0.8 0.0 0.0 0.0 1.0
+
+SECTION
+! THIS IS THE NEAR END OF CONTROL AILERON 1
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -4.00 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+aile1 1.0 0.8 0.0 0.0 0.0 1.0
+
+!---------------------------------------
+
+SECTION
+! THIS IS THE FAR END OF flap 3
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -3.5 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+flap3 1.0 0.8 0.0 0.0 0.0 1.0
+
+SECTION
+! THIS IS THE NEAR END OF flap 3
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -3.00 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+flap3 1.0 0.8 0.0 0.0 0.0 1.0
+
+!---------------------------------------
+
+SECTION
+! THIS IS THE FAR END OF flap 2
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -2.5 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+flap2 1.0 0.8 0.0 0.0 0.0 1.0
+
+SECTION
+! THIS IS THE NEAR END OF flap 2
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -2.00 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+flap2 1.0 0.8 0.0 0.0 0.0 1.0
+
+!---------------------------------------
+
+SECTION
+! THIS IS THE FAR END OF flap 1
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -1.5 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+flap1 1.0 0.8 0.0 0.0 0.0 1.0
+
+SECTION
+! THIS IS THE NEAR END OF flap 1
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0 -1.00 0.0 1.000 0.0  
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+flap1 1.0 0.8 0.0 0.0 0.0 1.0
+
+!---------------------------------------
+
+SECTION
+! THIS IS THE WING ROOT CROSS-SECTION
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.0     0.0    0.0     1.000   0.0   
+
+!---------------------------------------
+!---------------------------------------
+SURFACE 
+TAIL
+!Nchordwise  Cspace  Nspanwise  Sspace
+8            1.0     19         1.0
+
+SECTION
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+3.5     -1.73   0.0    0.58    0.0   8          1.0
+NACA 
+0015
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+elev     1.0    0.8		0.0 0.0 0.0  1.0
+
+SECTION
+!Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+3.5     0.0    0.0     0.58    0.0   
+
+CONTROL
+!Cname   Cgain  Xhinge  HingeVec     SgnDup
+elev 1.0 0.8 0.0 0.0 0.0 1.0

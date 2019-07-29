@@ -1,0 +1,30 @@
+LOAD alfa.avl
+MASS alfa.mass
+MSET
+0
+PLOP
+g
+
+OPER
+m
+v 5.4000
+mn 0.0000
+g 9.8100
+d 1.2250
+
+a a 13.8947
+b b 0.0000
+r r 0.0000
+p p 0.0000
+y y 0.0000
+d5 pm 0.0000
+d1 d1 15.0000
+d4 d4 -15.0000
+d3 d3 15.0000
+d2 d2 -15.0000
+x
+st alfa.stabs
+fs alfa.strip
+hm alfa.hinge
+
+QUIT
