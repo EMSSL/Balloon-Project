@@ -39,6 +39,10 @@
  #define OTHER_FILENAME "AODATA05.TXT"
  #define LOG_FILENAME "LOG05.TXT"
 //
+//
+// COLUMN WIDTH OF EACH RECEIVER'S PRINTOUTS
+  #define COLUMN_WIDTH 42
+//
 //*************************************************************************************************************
 //*******                                 END : CONFIGURATION SECTIONS
 //*************************************************************************************************************
@@ -87,6 +91,11 @@ typedef struct{
   String TempflushTotal;
   String OtherflushTotal;
   String GPSflushTotal;
+  String Time;
+  String lat;
+  String lon;
+  String elev;
+  String fixQual;
   ThreeAxis acc;
   ThreeAxis gyro;
   ThreeAxis mag;
@@ -95,16 +104,6 @@ typedef struct{
   String temperature;
   String humidity;
   String pitot;
-  
-  String Name_space;
-  ThreeSpace acc_space;
-  ThreeSpace gyro_space;
-  ThreeSpace mag_space;
-  ThreeSpace eul_space;
-  String pressure_space;
-  String temperature_space;
-  String humidity_space;
-  String pitot_space;
 }thing;
 
 //Xbee OBJECT DEFINITION
@@ -155,11 +154,20 @@ static struct pt xbeeReceivePT_1;
 static struct pt xbeeDecompPT_1;
 static struct pt xbeeDecodePT_1;
 static struct pt classifyPT_1;
-static struct pt parseGPS_1;
-static struct pt parseOther_1;
+static struct pt parseGPSPT_1;
+static struct pt parseOtherPT_1;
+static struct pt updateHUDPT_1;
+static struct pt printHUDPT;
 
 //PROTOTHREAD-RELATED STUFF
-bool classifyNow_1;
+bool classifyNow_1 = false;
+bool nameSpaced_1 = false;
+bool updateHUDOther_1 = false;
+bool updateHUDGPS_1 = false;
+bool rePrint = false;
+
+//HUD LINE STRINGS
+String hudLines_1[17];
 
 //*************************************************************************************************************
 //*******                               PROTOTHREAD - xbeeReceive_sense_1
@@ -171,7 +179,7 @@ static int xbeeReceive_sense_1(struct pt *pt)
     xbeeTempInd_1 = xbee_1.data_received_length;
     for(int i = 0; i < xbee_1.data_received_length; i++)
     {
-      xbeeTempbuff_1[i] = xbee.data_received;
+      xbeeTempbuff_1[i] = xbee_1.data_received[i];
     }
     xbee_1.clearBuffers();
     LogPrintln(&receiver_1,3,F("XBEERECEIVE_SENSE_1 : GOT SOMETHING"));
@@ -186,7 +194,7 @@ static int xbeeDecomp_sense_1(struct pt *pt)
   PT_BEGIN(pt);
   PT_WAIT_UNTIL(pt, xbeeTempInd_1);
     xbeeDecompInd_1 = decompress(xbeeTempbuff_1, xbeeDecomp_1, xbeeTempInd_1);
-    xbeeTempInde_1 = 0;
+    xbeeTempInd_1 = 0;
     LogPrintln(&receiver_1,3,F("XBEEDECOMP_SENSE_1 : CALLED"));
   PT_END(pt);
 }
@@ -198,11 +206,11 @@ static int xbeeDecode_sense_1(struct pt *pt)
 {
   PT_BEGIN(pt);
   PT_WAIT_UNTIL(pt, xbeeDecompInd_1);
-    matchCaseDecompress(xbeeDecomp_1, xbeeDecompInd_1)
-    TempflushTotal = "";
+    matchCaseDecompress(xbeeDecomp_1, xbeeDecompInd_1);
+    receiver_1.TempflushTotal = "";
     for(int i = 0; i < xbeeDecompInd_1; i++)
     {
-      TempflushTotal += (char)xbeeDecomp_1[i];
+      receiver_1.TempflushTotal += (char)xbeeDecomp_1[i];
     }
     classifyNow_1 = true;
     xbeeDecompInd_1 = 0;
@@ -246,16 +254,395 @@ static int parseGPS_sense_1(struct pt *pt)
   PT_BEGIN(pt);
   PT_WAIT_UNTIL(pt, receiver_1.GPSflushTotal.length());
     LogPrintln(&receiver_1,3,F("PARSEGPS_SENSE_1 : CALLED"));
-    if(receiver_1.GPSflushTotal.indexOf("GPRMC") >= 0){
-      
-    }
-    else if(receiver_1.GPSflushTotal.indexOf("GPGGA") >= 0){
-      
-    }
-    else{
-      
-    }
+    parseGPS_1();
   PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - parseOther_sense_1
+//*************************************************************************************************************
+static int parseOther_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, receiver_1.OtherflushTotal.length());
+    LogPrintln(&receiver_1,3,F("PARSEOTHER_SENSE_1 : CALLED"));
+    parseOther_1();
+    updateHUDOther_1 = true;
+  PT_END(pt);
+}
+
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - updateHUD_sense_1
+//*************************************************************************************************************
+static int updateHUD_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, (updateHUDGPS_1 || updateHUDOther_1));
+    LogPrintln(&receiver_1,3,F("UPDATEHUD_SENSE_1 : CALLED"));
+    printPrep_1();  
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - printHUD_sense
+//*************************************************************************************************************
+static int printHUD_sense(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, rePrint);
+    LogPrintln(&receiver_1,3,F("PRINTHUD_SENSE : CALLED"));
+    printHUD(); 
+    rePrint = false; 
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                                 parseOther_1
+//*************************************************************************************************************
+void parseOther_1(){
+  LogPrintln(&receiver_1,3,F("PARSEOTHER_1 : CALLED"));
+  
+  uint8_t pretimeadd = receiver_1.OtherflushTotal.indexOf(",");             // finds the locations on the 
+  uint8_t preElev = receiver_1.OtherflushTotal.indexOf("," , pretimeadd+1); // string for each datafield
+  uint8_t preAccX = receiver_1.OtherflushTotal.indexOf(":");                //
+  uint8_t preAccY = receiver_1.OtherflushTotal.indexOf("," , preAccX+1);    //
+  uint8_t preAccZ = receiver_1.OtherflushTotal.indexOf("," , preAccY+1);    //
+                                                                            //
+  uint8_t preGyroX = receiver_1.OtherflushTotal.indexOf("," , preAccZ+1);   //
+  uint8_t preGyroY = receiver_1.OtherflushTotal.indexOf("," , preGyroX+1);  //
+  uint8_t preGyroZ = receiver_1.OtherflushTotal.indexOf("," , preGyroY+1);  //
+                                                                            //
+  uint8_t preMagX = receiver_1.OtherflushTotal.indexOf("," , preGyroZ+1);   //
+  uint8_t preMagY = receiver_1.OtherflushTotal.indexOf("," , preMagX+1);    //
+  uint8_t preMagZ = receiver_1.OtherflushTotal.indexOf("," , preMagY+1);    //
+                                                                            //
+  uint8_t preEulX = receiver_1.OtherflushTotal.indexOf("," , preMagZ+1);    //
+  uint8_t preEulY = receiver_1.OtherflushTotal.indexOf("," , preEulX+1);    //
+  uint8_t preEulZ = receiver_1.OtherflushTotal.indexOf("," , preEulY+1);    //
+                                                                            //
+  uint8_t preGravX = receiver_1.OtherflushTotal.indexOf("," , preEulZ+1);   //
+  uint8_t preGravY = receiver_1.OtherflushTotal.indexOf("," , preGravX+1);  //
+  uint8_t preGravZ = receiver_1.OtherflushTotal.indexOf("," , preGravY+1);  //
+                                                                            //
+  uint8_t preTemp = receiver_1.OtherflushTotal.indexOf("," , preGravZ+1);   //
+  uint8_t prePressure = receiver_1.OtherflushTotal.indexOf("," , preTemp+1);  //
+  uint8_t preHumidity = receiver_1.OtherflushTotal.indexOf("," , prePressure+1);  //
+  uint8_t preAltAltitude = receiver_1.OtherflushTotal.indexOf("," , preHumidity+1); //
+  uint8_t prePitot = receiver_1.OtherflushTotal.indexOf("," , preAltAltitude+1);  //
+  uint8_t postPitot = receiver_1.OtherflushTotal.indexOf("--");                   //
+
+  if(pretimeadd + preElev + preAccX + preAccY + preAccZ + preGyroX + preGyroY + preGyroZ + preMagX + preMagY + preMagZ + preEulX + preEulY + preEulZ + preGravX + preGravY + preGravZ + preTemp + prePressure + preHumidity + preAltAltitude + prePitot + postPitot < 22)
+  {
+    LogPrintln(&receiver_1,1,F("PARSEOTHER_1 : MISSING FIELDS IN NMEA SENTENCE, BUFFER CLEARED"));
+    receiver_1.OtherflushTotal = "";
+    return;
+  }
+
+  // parses up the datafields and assigns them to the corresponding struct members
+  receiver_1.acc.x = receiver_1.OtherflushTotal.substring(preAccX+1,preAccY);
+  receiver_1.acc.y = receiver_1.OtherflushTotal.substring(preAccY+1,preAccZ);
+  receiver_1.acc.z = receiver_1.OtherflushTotal.substring(preAccZ+1,preGyroX);
+
+  receiver_1.gyro.x = receiver_1.OtherflushTotal.substring(preGyroX+1,preGyroY);
+  receiver_1.gyro.y = receiver_1.OtherflushTotal.substring(preGyroY+1,preGyroZ);
+  receiver_1.gyro.z = receiver_1.OtherflushTotal.substring(preGyroZ+1,preMagX);
+
+  receiver_1.mag.x = receiver_1.OtherflushTotal.substring(preMagX+1,preMagY);
+  receiver_1.mag.y = receiver_1.OtherflushTotal.substring(preMagY+1,preMagZ);
+  receiver_1.mag.z = receiver_1.OtherflushTotal.substring(preMagZ+1,preEulX);
+
+  receiver_1.eul.x = receiver_1.OtherflushTotal.substring(preEulX+1,preEulY);
+  receiver_1.eul.y = receiver_1.OtherflushTotal.substring(preEulY+1,preEulZ);
+  receiver_1.eul.z = receiver_1.OtherflushTotal.substring(preEulZ+1,preTemp);
+
+  receiver_1.pressure = receiver_1.OtherflushTotal.substring(prePressure+1,preHumidity);
+  receiver_1.temperature = receiver_1.OtherflushTotal.substring(preTemp+1,prePressure);
+  receiver_1.humidity = receiver_1.OtherflushTotal.substring(preHumidity+1,preAltAltitude);
+  receiver_1.pitot = receiver_1.OtherflushTotal.substring(prePitot+1,postPitot);
+    
+  receiver_1.OtherflushTotal = "";
+  LogPrintln(&receiver_1,3,F("PARSEOTHER_1 : OTHER SENSOR SENTENCE DETECTED/PARSED, BUFFER CLEARED"));
+  
+}
+
+//*************************************************************************************************************
+//*******                                 parseGPS_1
+//*************************************************************************************************************
+void parseGPS_1(){
+  if(receiver_1.GPSflushTotal.indexOf("GPRMC") >= 0){
+    uint8_t preTime = receiver_1.GPSflushTotal.indexOf(",");
+    uint8_t preStatus = receiver_1.GPSflushTotal.indexOf(",", preTime + 1);
+    uint8_t preLat = receiver_1.GPSflushTotal.indexOf(",", preStatus + 1);
+    uint8_t preLatSuffix = receiver_1.GPSflushTotal.indexOf(",", preLat + 1);
+    uint8_t preLon = receiver_1.GPSflushTotal.indexOf(",", preLatSuffix + 1);
+    uint8_t preLonSuffix = receiver_1.GPSflushTotal.indexOf(",", preLon + 1);
+    uint8_t postLonSuffix = receiver_1.GPSflushTotal.indexOf(",", preLonSuffix + 1);
+
+    if((preTime + preStatus + preLat + preLatSuffix + preLon + preLonSuffix + postLonSuffix) < 6)
+    {
+      LogPrintln(&receiver_1,1,F("PARSEGPS_1 : MISSING FIELDS IN NMEA SENTENCE, BUFFER CLEARED"));
+      receiver_1.GPSflushTotal = "";
+      return;
+    }
+
+    receiver_1.Time = receiver_1.GPSflushTotal(preTime + 1,preStatus);
+    receiver_1.lat = receiver_1.GPSflushTotal(preLat + 1,preLon);
+    receiver_1.lon = receiver_1.GPSflushTotal(preLon + 1,postLonSuffix);
+    
+    receiver_1.GPSflushTotal = "";
+    LogPrintln(&receiver_1,3,F("PARSEGPS_1 : RMC SENTENCE DETECTED/PARSED, BUFFER CLEARED"));
+    updateHUDGPS_1 = true;
+  }
+  else if(receiver_1.GPSflushTotal.indexOf("GPGGA") >= 0){
+    uint8_t preTime = receiver_1.GPSflushTotal.indexOf(",");
+    uint8_t preLat = receiver_1.GPSflushTotal.indexOf(",", preTime + 1);
+    uint8_t preLatSuffix = receiver_1.GPSflushTotal.indexOf(",", preLat + 1);
+    uint8_t preLon = receiver_1.GPSflushTotal.indexOf(",", preLatSuffix + 1);
+    uint8_t preLonSuffix = receiver_1.GPSflushTotal.indexOf(",", preLon + 1);
+    uint8_t preFixQuality = receiver_1.GPSflushTotal.indexOf(",", preLonSuffix + 1);
+    uint8_t preSatTracked = receiver_1.GPSflushTotal.indexOf(",", preFixQuality + 1);
+    uint8_t preHDOP = receiver_1.GPSflushTotal.indexOf(",", preSatTracked + 1);
+    uint8_t preElev = receiver_1.GPSflushTotal.indexOf(",", preHDOP + 1);
+    uint8_t postElev = receiver_1.GPSflushTotal.indexOf(",", preElev + 1);
+
+    if((preTime + preLat + preLatSuffix + preLon + preLonSuffix + preFixQuality + preSatTracked + preHDOP + preElev + postElev) < 9)
+    {
+      LogPrintln(&receiver_1,1,F("PARSEGPS_1 : MISSING FIELDS IN NMEA SENTENCE, BUFFER CLEARED"));
+      receiver_1.GPSflushTotal = "";
+      return;
+    }
+
+    receiver_1.Time = receiver_1.GPSflushTotal(preTime + 1,preLat);
+    receiver_1.lat = receiver_1.GPSflushTotal(preLat + 1,preLon);
+    receiver_1.lon = receiver_1.GPSflushTotal(preLon + 1,preFixQuality);
+    receiver_1.fixQual = receiver_1.GPSflushTotal(preFixQuality + 1,preSatTracked);
+    receiver_1.elev = receiver_1.GPSflushTotal.(preElev + 1,postElev);
+    
+    receiver_1.GPSflushTotal = "";
+    LogPrintln(&receiver_1,3,F("PARSEGPS_1 : GGA SENTENCE DETECTED/PARSED, BUFFER CLEARED"));
+    updateHUDGPS_1 = true;
+  }
+  else{
+    LogPrintln(&receiver_1,1,F("PARSEGPS_1 : UNIDENTIFIED NMEA SENTENCE, BUFFER CLEARED"));
+    receiver_1.GPSflushTotal = "";
+  }
+}
+
+//*************************************************************************************************************
+//*******                                 printPrep_1
+//*************************************************************************************************************
+void printPrep_1(){
+  LogPrintln(&receiver_1,3,F("PRINTPREP_1 : CALLED"));
+  if(!nameSpaced_1){
+    LogPrintln(&receiver_1,3,F("PRINTPREP_1 : UPDATING THE NAME FIELD"));
+    uint8_t preName_space = (COLUMN_WIDTH - receiver_1.Name)/2;
+    uint8_t postName_space = COLUMN_WIDTH - (preName_space + receiver_1.Name);
+    for(int i = 0; i < preName_space; i++){
+      receiver_1.Name = F(" ") + receiver_1.Name;
+    }
+    for(int i = 0; i < postName_space; i++){
+      receiver_1.Name = receiver_1.Name + F(" ");
+    }
+    nameSpaced_1 = true; 
+  }
+  
+  if(updateHUDOther_1){
+    LogPrintln(&receiver_1,3,F("PRINTPREP_1 : UPDATEHUDOTHER_1"));
+ 
+    receiver_1.acc.x = F("ACC X : ") + receiver_1.acc.x;
+    receiver_1.acc.y = F("ACC X : ") + receiver_1.acc.x;
+    receiver_1.acc.z = F("ACC X : ") + receiver_1.acc.x;
+  
+    receiver_1.gyro.x = F("GYRO X : ") + receiver_1.gyro.x;
+    receiver_1.gyro.y = F("GYRO X : ") + receiver_1.gyro.x;
+    receiver_1.gyro.z = F("GYRO X : ") + receiver_1.gyro.x;
+  
+    receiver_1.mag.x = F("MAG X : ") + receiver_1.mag.x;
+    receiver_1.mag.y = F("MAG X : ") + receiver_1.mag.x;
+    receiver_1.mag.z = F("MAG X : ") + receiver_1.mag.x;
+  
+    receiver_1.eul.x = F("EUL X : ") + receiver_1.eul.x;
+    receiver_1.eul.y = F("EUL X : ") + receiver_1.eul.x;
+    receiver_1.eul.z = F("EUL X : ") + receiver_1.eul.x;
+  
+    receiver_1.pressure = F("PRESS : ") + receiver_1.pressure;
+    receiver_1.temperature = F("TEMP : ") + receiver_1.temperature;
+    receiver_1.humidity = F("HUMID : ") + receiver_1.humidity;
+    receiver_1.pitot = F("PITOT : ") + receiver_1.pitot;
+
+  
+    uint8_t accSpace_x_1 = (11 - receiver_1.acc.x.length());
+    for(int i = 0; i < accSpace_x_1; i++){
+      receiver_1.acc.x += F(" ");
+    }
+    uint8_t accSpace_y_1 = (11 - receiver_1.acc.y.length());
+    for(int i = 0; i < accSpace_y_1; i++){
+      receiver_1.acc.y += F(" ");
+    }
+    uint8_t accSpace_z_1 = (11 - receiver_1.acc.z.length());
+    for(int i = 0; i < accSpace_z_1; i++){
+      receiver_1.acc.z += F(" ");
+    }
+
+    uint8_t gyroSpace_x_1 = (11 - receiver_1.gyro.x.length());
+    for(int i = 0; i < gyroSpace_x_1; i++){
+      receiver_1.gyro.x += F(" ");
+    }
+    uint8_t gyroSpace_y_1 = (11 - receiver_1.gyro.y.length());
+    for(int i = 0; i < gyroSpace_y_1; i++){
+      receiver_1.gyro.y += F(" ");
+    }
+    uint8_t gyroSpace_z_1 = (11 - receiver_1.gyro.z.length());
+    for(int i = 0; i < gyroSpace_z_1; i++){
+      receiver_1.gyro.z += F(" ");
+    }
+
+    uint8_t magSpace_x_1 = (11 - receiver_1.mag.x.length());
+    for(int i = 0; i < magSpace_x_1; i++){
+      receiver_1.mag.x += F(" ");
+    }
+    uint8_t magSpace_y_1 = (11 - receiver_1.mag.y.length());
+    for(int i = 0; i < magSpace_y_1; i++){
+      receiver_1.mag.y += F(" ");
+    }
+    uint8_t magSpace_z_1 = (11 - receiver_1.mag.z.length());
+    for(int i = 0; i < magSpace_z_1; i++){
+      receiver_1.mag.z += F(" ");
+    }
+
+    uint8_t eulSpace_x_1 = (11 - receiver_1.eul.x.length());
+    for(int i = 0; i < eulSpace_x_1; i++){
+      receiver_1.eul.x += F(" ");
+    }
+    uint8_t eulSpace_y_1 = (11 - receiver_1.eul.y.length());
+    for(int i = 0; i < eulSpace_y_1; i++){
+      receiver_1.eul.y += F(" ");
+    }
+    uint8_t eulSpace_z_1 = (11 - receiver_1.eul.z.length());
+    for(int i = 0; i < eulSpace_z_1; i++){
+      receiver_1.eul.z += F(" ");
+    }
+
+    uint8_t pressSpace_1 = (22 - receiver_1.pressure.length());
+    for(int i = 0; i < pressSpace_1; i++){
+      receiver_1.pressure += F(" ");
+    }
+    uint8_t tempSpace_1 = (22 - receiver_1.temperature.length());
+    for(int i = 0; i < tempSpace_1; i++){
+      receiver_1.temperature += F(" ");
+    }
+    uint8_t humidSpace_1 = (22 - receiver_1.humidity.length());
+    for(int i = 0; i < humidSpace_1; i++){
+      receiver_1.humidity += F(" ");
+    }
+    uint8_t pitotSpace_1 = (22 - receiver_1.pitot.length());
+    for(int i = 0; i < pitotSpace_1; i++){
+      receiver_1.pitot += F(" ");
+    }
+
+    if(!nameSpaced_1){
+      hudLines_1[0] = receiver_1.Name + F("|| ");
+      for(int i = 0; i < COLUMN_WIDTH; i++)
+      {
+        hudLines[1] += F(" ");
+        hudLines[5] += F(" ");
+        hudLines[6] += F(" ");
+        hudLines[11] += F(" ");
+        hudLines[12] += F(" ");
+      }
+      hudLines[1] += F("|| ");
+      hudLines[5] += F("|| ");
+      hudLines[6] += F("|| ");
+      hudLines[11] += F("|| ");
+      hudLines[12] += F("|| ");
+      hudLines[7] = F("ACC        GYRO       MAG        || ");
+    }
+  
+    hudLines_1[8] = receiver_1.acc.x + receiver_1.gyro.x + receiver_1.mag.x + F("|| ");
+    hudLines_1[9] = receiver_1.acc.y + receiver_1.gyro.y + receiver_1.mag.y + F("|| ");
+    hudLines_1[10] = receiver_1.acc.z + receiver_1.gyro.z + receiver_1.mag.z + F("|| ");
+    
+    hudLines_1[13] = F("EUL        ") + receiver_1.pressure + F("|| ");
+    hudLines_1[14] = receiver_1.eul.x + receiver_1.temperature + F("|| ");
+    hudLines_1[15] = receiver_1.eul.y + receiver_1.humidity + F("|| ");
+    hudLines_1[16] = receiver_1.eul.z + receiver_1.pitot + F("|| ");
+
+    updateHUDOther_1 = false;
+  }
+
+  if(updateHUDGPS_1){
+    LogPrintln(&receiver_1,3,F("PRINTPREP_1 : updateHUDGPS_1"));
+    receiver_1.lat = F("LAT : ") + receiver_1.lat;
+    receiver_1.lon = F("LON : ") + receiver_1.lon;
+    receiver_1.elev = F("ELEV : ") + receiver_1.elev;
+
+    uint8_t latSpace_1 = COLUMN_WIDTH - receiver_1.lat.length();
+    uint8_t lonSpace_1 = COLUMN_WIDTH - receiver_1.lon.length();
+    uint8_t elevSpace_1 = COLUMN_WIDTH - receiver_1.elev.length();
+
+    for(int i = 0; i < latSpace_1; i++){
+      receiver_1.lat += F(" ");
+    }
+    for(int i = 0; i < lonSpace_1; i++){
+      receiver_1.lon += F(" ");
+    }
+    for(int i = 0; i < elevSpace_1; i++){
+      receiver_1.elev += F(" ");
+    }
+
+    hudLines_1[2] = receiver_1.lat + F("|| ");
+    hudLines_1[3] = receiver_1.lon + F("|| ");
+    hudLines_1[4] = receiver_1.elev + F("|| ");
+
+    updateHUDGPS_1 = false;
+  }
+  LogPrintln(&receiver_1,3,F("PRINTPREP_1 : UPDATED"));
+  rePrint = true;
+}
+
+//*************************************************************************************************************
+//*******                                 printHUD
+//*************************************************************************************************************
+void printHUD(){
+  LogPrintln(&receiver_1,3,F("PRINTHUD : CALLED"));
+
+  #ifndef XB_DEST_ADDR_2
+    for(i = 0; i < 17; i++){
+      Serial.println(hudLines_1[i]);
+    }
+  #else
+    for(i = 0; i < 17; i++){
+      Serial.print(hudLines_1[i]);
+      Serial.println(hudLines_2[i]);
+    }
+  #endif
+ 
+  LogPrintln(&receiver_1,3,F("PRINTHUD : COMPLETED"));
+}
+
+//*************************************************************************************************************
+//*******                                 stringReserveMem_1
+//*************************************************************************************************************
+void stringReserveMem_1(){
+  LogPrintln(&receiver_1,3,F("STRINGRESERVEMEM_1 : CALLED"));
+  receiver_1.Name.reserve(COLUMN_WIDTH);
+  receiver_1.TempflushTotal.reserve(COLUMN_WIDTH);
+  receiver_1.OtherflushTotal.reserve(COLUMN_WIDTH);
+  receiver_1.GPSflushTotal.reserve(COLUMN_WIDTH);
+  receiver_1.Time.reserve(COLUMN_WIDTH);
+  receiver_1.lat.reserve(COLUMN_WIDTH);
+  receiver_1.lon.reserve(COLUMN_WIDTH);
+  receiver_1.elev.reserve(COLUMN_WIDTH);
+  receiver_1.fixQual.reserve(COLUMN_WIDTH);
+  receiver_1.pressure.reserve(COLUMN_WIDTH);
+  receiver_1.temperature.reserve(COLUMN_WIDTH);
+  receiver_1.humidity.reserve(COLUMN_WIDTH);
+  receiver_1.pitot.reserve(COLUMN_WIDTH);
+
+  for(int i = 0; i < 17; i++){
+     hudLines_1[i].reserve(COLUMN_WIDTH);
+  }
 }
 
 //*************************************************************************************************************
@@ -263,6 +650,7 @@ static int parseGPS_sense_1(struct pt *pt)
 //*************************************************************************************************************
 void setupXbee_1()
     {
+      LogPrintln(&receiver_1,3,F("SETUPXBEE_1 : CALLED"));
       xbee_1.setSPI_clockFreq(XB_SPI_CLK_1);
       xbee_1.setSPI_bitOrder(MSBFIRST);
       xbee_1.setSPI_mode(SPI_MODE0);
@@ -992,14 +1380,20 @@ void setup() {
   delay(5000);
   Serial.begin(115200);
 
-  System.Name = "System";
-  receiver_1.Name = XBEE1_NAME;
-
   Log_reserveMem(100);
   Log_setPriority(3,3);
+  LogPrintln(&System,3,F("SETUP : BEGIN INITIALIZING"));
+  
+  System.Name = "System";
+  receiver_1.Name = XBEE1_NAME;
+  LogPrintln(&System,3,F("SETUP : ASSIGNED THING NAMES"));
+
+  stringReserveMem_1;
+  LogPrintln(&System,3,F("SETUP : RESERVED SYSTEM STRING MEMORY"));
   
   pinMode(sdPower, OUTPUT);
   digitalWrite(sdPower, HIGH);
+  LogPrintln(&System,3,F("SETUP : POWERED UP SENSORS"));
   
   long xbeeTime = millis();
   while(XB_NP_1 != 256 && (millis() - xbeeTime <= 5000))
@@ -1011,29 +1405,38 @@ void setup() {
   {
     setupXbee_1(); // include all setup features in this fucntion (above) 
   }
+  LogPrintln(&System,3,F("SETUP : XBEE_1 HAS BEEN SET UP"));
+
   if(!SD.begin(SD_CS)){         // initializes the SD card
-    Serial.println(F("SD Card failed to initialize!")); // if the SD card fails, set sdError true and tell someone
+    LogPrintln(&System,1,F("SETUP : SD CARD FAILED TO INITIALIZE")); // if the SD card fails, set sdError true and tell someone
   }                                 
   else{
+    LogPrintln(&System,3,F("SETUP : SD CARD CONNECTED"));
     uint8_t makefile_attempts = 0;
     while(!makeFiles() && (makefile_attempts < 99)){ 
         makefile_attempts++;        
     }
     if(makefile_attempts >= 99){
-      Serial.println(F("File Initialization Failed!")); // if makeFiles fails, set makeFileError to true and tell someone
+      LogPrintln(&System,1,F("SETUP : MAKEFILES FAILED TO INITIALIZE")); // if makeFiles fails, set makeFileError to true and tell someone
     }
     else{
-      Serial.println(F("makefiles worked!"));
+      LogPrintln(&System,3,F("SETUP : MAKEFILES WORKED!"));
     }
   }
 
-  OtherData.print(F("w00t!"));                 
-  GPSdata.print(F("w00t!"));                  
+  PT_INIT(&xbeeReceivePT_1);
+  PT_INIT(&xbeeDecompPT_1);
+  PT_INIT(&xbeeDecodePT_1);
+  PT_INIT(&classifyPT_1);
+  PT_INIT(&parseGPSPT_1);
+  PT_INIT(&parseOtherPT_1);
+  PT_INIT(&updateHUDPT_1);
+  PT_INIT(&printHUDPT);
+  LogPrintln(&System,3,F("SETUP : PROTOTHREADS INITIALIZED"));
 
-  OtherData.flush();
-  GPSdata.flush();
   
-
+  
+  LogPrintln(&System,3,F("SETUP : COMPLETED, MOVING TO LOOP"));
 }
 
 //*************************************************************************************************************
@@ -1041,8 +1444,13 @@ void setup() {
 //*************************************************************************************************************
 void loop() {
 
-  LogPrintln(&System,3,F("w00t!"));
-  LogPrintln(&receiver_1,3,F("w00t!"));
-  // put your main code here, to run repeatedly:
-
+  xbeeReceive_sense_1(&xbeeReceivePT_1);
+  xbeeDecomp_sense_1(&xbeeDecompPT_1);
+  xbeeDecode_sense_1(&xbeeDecodePT_1);
+  classifyStuff_sense_1(&classifyPT_1);
+  parseGPS_sense_1(&parseGPSPT_1);
+  parseOther_sense_1(&parseOtherPT_1);
+  updateHUD_sense_1(&updateHUDPT_1);
+  printHUD_sense(&printHUDPT);
+  
 }
