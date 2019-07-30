@@ -84,6 +84,7 @@ typedef struct{
 
 typedef struct{
   String Name;
+  String TempflushTotal;
   String OtherflushTotal;
   String GPSflushTotal;
   ThreeAxis acc;
@@ -138,15 +139,124 @@ thing receiver_1;                                // DECLARATION OF THE THING
 thing System;                                    // DECLARATION OF A SYSTEM THING FOR LOGGING GENERAL SYSTEM STATS AND ERRORS
 
 // XBEE GLOBALS
-
+uint8_t xbeeTempbuff_1[256];
+uint8_t xbeeDecomp_1[600];
+uint16_t xbeeTempInd_1;
+uint16_t xbeeDecompInd_1;
+uint16_t xbeeDecodeInd_1; 
 
 // INITIALIZE THE GLOBAL OBJECTS AND STRUCTS
 File OtherData;                 // SD file for sensor data
 File GPSdata;                   // SD file for GPS data
 File logFile;                   // SD file for log data
 
+// PROTOTHREAD OBJECTS
+static struct pt xbeeReceivePT_1;
+static struct pt xbeeDecompPT_1;
+static struct pt xbeeDecodePT_1;
+static struct pt classifyPT_1;
+static struct pt parseGPS_1;
+static struct pt parseOther_1;
 
+//PROTOTHREAD-RELATED STUFF
+bool classifyNow_1;
 
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - xbeeReceive_sense_1
+//*************************************************************************************************************
+static int xbeeReceive_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, xbee_1.data_received_length);
+    xbeeTempInd_1 = xbee_1.data_received_length;
+    for(int i = 0; i < xbee_1.data_received_length; i++)
+    {
+      xbeeTempbuff_1[i] = xbee.data_received;
+    }
+    xbee_1.clearBuffers();
+    LogPrintln(&receiver_1,3,F("XBEERECEIVE_SENSE_1 : GOT SOMETHING"));
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - xbeeDecomp_sense_1
+//*************************************************************************************************************
+static int xbeeDecomp_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, xbeeTempInd_1);
+    xbeeDecompInd_1 = decompress(xbeeTempbuff_1, xbeeDecomp_1, xbeeTempInd_1);
+    xbeeTempInde_1 = 0;
+    LogPrintln(&receiver_1,3,F("XBEEDECOMP_SENSE_1 : CALLED"));
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - xbeeDecode_sense_1
+//*************************************************************************************************************
+static int xbeeDecode_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, xbeeDecompInd_1);
+    matchCaseDecompress(xbeeDecomp_1, xbeeDecompInd_1)
+    TempflushTotal = "";
+    for(int i = 0; i < xbeeDecompInd_1; i++)
+    {
+      TempflushTotal += (char)xbeeDecomp_1[i];
+    }
+    classifyNow_1 = true;
+    xbeeDecompInd_1 = 0;
+    LogPrintln(&receiver_1,3,F("XBEEDECODE_SENSE_1 : CALLED"));
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - classifyStuff_sense_1
+//*************************************************************************************************************
+static int classifyStuff_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, classifyNow_1);
+    LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CALLED"));
+    
+    if((receiver_1.TempflushTotal.indexOf("GPRMC") >= 0) || (receiver_1.TempflushTotal.indexOf("GPGGA") >= 0)){
+      receiver_1.GPSflushTotal = receiver_1.TempflushTotal;
+      GPSdata.print(receiver_1.Name);
+      GPSdata.print(F(" : "));
+      GPSdata.print(receiver_1.GPSflushTotal);
+      GPSdata.flush();
+      LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS"));
+    }
+    else{
+      receiver_1.OtherflushTotal = receiver_1.TempflushTotal;
+      OtherData.print(receiver_1.Name);
+      OtherData.print(F(" : "));
+      OtherData.print(receiver_1.GPSflushTotal);
+      GPSdata.flush();
+      LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED OTHERSTUFF"));
+    }
+  PT_END(pt);
+}
+
+//*************************************************************************************************************
+//*******                               PROTOTHREAD - parseGPS_sense_1
+//*************************************************************************************************************
+static int parseGPS_sense_1(struct pt *pt)
+{
+  PT_BEGIN(pt);
+  PT_WAIT_UNTIL(pt, receiver_1.GPSflushTotal.length());
+    LogPrintln(&receiver_1,3,F("PARSEGPS_SENSE_1 : CALLED"));
+    if(receiver_1.GPSflushTotal.indexOf("GPRMC") >= 0){
+      
+    }
+    else if(receiver_1.GPSflushTotal.indexOf("GPGGA") >= 0){
+      
+    }
+    else{
+      
+    }
+  PT_END(pt);
+}
 
 //*************************************************************************************************************
 //*******                                 setupXbee_1
