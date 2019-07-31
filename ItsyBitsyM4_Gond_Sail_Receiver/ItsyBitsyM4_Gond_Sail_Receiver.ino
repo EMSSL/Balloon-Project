@@ -1772,6 +1772,8 @@
       GPS.sendCommand(PMTK_API_SET_FIX_CTL_5HZ);    //GPS will refresh 5 times a second (doesn't mean you will get data that often)
       GPS.sendCommand(PGCMD_NOANTENNA);             // kills the antenna status update           
       useInterrupt(true);                           // uses interrupts to gather incoming data                          
+
+      usb.println(F("begin imu stuff"));
       
       if(!IMU.begin()){             // initializes IMU
         usb.println(F("BNO055 IMU Initialization Error")); // if IMU fails, set imuError to true and tell someone

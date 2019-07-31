@@ -2,9 +2,9 @@
 //  UNCOMMENT WHICH XBEE DESTINATION ADDRESS YOU WANT TO COMMUNICATE WITH, UNCOMMENT THE REMAINDER
 // 
 //#define XB_DEST_ADDR_1 (0x0013A200417E38C1)  // DESTINATION XBEE 64-BIT ADDRESS (A200K, DEFAULT GONDOLA)
-//#define XB_DEST_ADDR_1 (0x0013A200417E3816) // DESTINATION XBEE 64-BIT ADDRESS (B200K, DEFAULT SAIL)
+#define XB_DEST_ADDR_1 (0x0013A200417E3816) // DESTINATION XBEE 64-BIT ADDRESS (B200K, DEFAULT SAIL)
 //#define XB_DEST_ADDR_1 (0x0013A200417E3829)  // DESTINATION XBEE 64-BIT ADDRESS (C200K, DEFAULT GONDOLA RECEIVER)
-#define XB_DEST_ADDR_1 (0x0013A200417E381A) // DESTINATION XBEE 64-BIT ADDRESS (D200K, DEFAULT SAIL RECEIVER)
+//#define XB_DEST_ADDR_1 (0x0013A200417E381A) // DESTINATION XBEE 64-BIT ADDRESS (D200K, DEFAULT SAIL RECEIVER)
 //#define XB_DEST_ADDR_1 (0x0013A200417E35F7) // DESTINATION XBEE 64-BIT ADDRESS (E200K, DEFAULT BACKUP UNIT)
 
 
@@ -23,8 +23,8 @@
 //  COMMENT OUT THE REST, USED FOR FORMATTING THE HUD. 
 //
 //    XBEE1 TRANSMITTER NAME
-      #define XBEE1_NAME "GONDOLA"
-//      #define XBEE1_NAME "SAIL"
+//      #define XBEE1_NAME "GONDOLA"
+      #define XBEE1_NAME "SAIL"
 //      #define XBEE1_NAME "OTHER"    // CHANGE OTHER TO YOUR PREFERRED NAME (LIMIT 7 CHARACTERS)
 //
 //    XBEE2 TRANSMITTER NAME
@@ -35,8 +35,8 @@
 //
 // FILE NAMES FOR THE SD CARD : UNCOMMENT EACH ONE AND TYPE IN A FILENAME
 //
- #define GPS_FILENAME "GPSLOG05.TXT"
- #define OTHER_FILENAME "AODATA05.TXT"
+ #define GPS_FILENAME "GPS05.TXT"
+ #define OTHER_FILENAME "ODAT05.TXT"
  #define LOG_FILENAME "LOG05.TXT"
 //
 //
@@ -115,7 +115,7 @@ typedef struct{
 #define XB_DEST_COMMAND_DIO_1 ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
 #define XB_DEST_CUTDOWN_DIO_1 ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
 #define XB_SPI_CLK_1 (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
-#define XB_PRIMARY_MODE_1 (1)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+#define XB_PRIMARY_MODE_1 (2)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
 #define XB_MAX_PAYLOAD_SIZE_1 256                 // cannot exceed NP (256)
 uint16_t XB_NP_1;                            // holds the value for AT property NP (max payload size)
 
@@ -138,8 +138,8 @@ thing receiver_1;                                // DECLARATION OF THE THING
 thing System;                                    // DECLARATION OF A SYSTEM THING FOR LOGGING GENERAL SYSTEM STATS AND ERRORS
 
 // XBEE GLOBALS
-uint8_t xbeeTempbuff_1[256];
-uint8_t xbeeDecomp_1[600];
+uint8_t xbeeTempbuff_1[300];
+uint8_t xbeeDecomp_1[700];
 uint16_t xbeeTempInd_1;
 uint16_t xbeeDecompInd_1;
 uint16_t xbeeDecodeInd_1; 
@@ -175,14 +175,15 @@ String hudLines_1[17];
 static int xbeeReceive_sense_1(struct pt *pt)
 {
   PT_BEGIN(pt);
-  PT_WAIT_UNTIL(pt, xbee_1.data_received_length);
+  PT_WAIT_UNTIL(pt, xbee_1.data_received_length > 0);
     xbeeTempInd_1 = xbee_1.data_received_length;
-    for(int i = 0; i < xbee_1.data_received_length; i++)
+    for(int i = 0; i < 300; i++)
     {
-      xbeeTempbuff_1[i] = xbee_1.data_received[i];
+      xbeeTempbuff_1[i] = xbee_1.data_received[i]; 
     }
     xbee_1.clearBuffers();
     LogPrintln(&receiver_1,3,F("XBEERECEIVE_SENSE_1 : GOT SOMETHING"));
+
   PT_END(pt);
 }
 
@@ -195,6 +196,11 @@ static int xbeeDecomp_sense_1(struct pt *pt)
   PT_WAIT_UNTIL(pt, xbeeTempInd_1);
     xbeeDecompInd_1 = decompress(xbeeTempbuff_1, xbeeDecomp_1, xbeeTempInd_1);
     xbeeTempInd_1 = 0;
+    for(int i = 0; i < xbeeDecompInd_1; i++)
+    {
+      Serial.print(xbeeDecomp_1[i]);
+    }
+    Serial.println(F(""));
     LogPrintln(&receiver_1,3,F("XBEEDECOMP_SENSE_1 : CALLED"));
   PT_END(pt);
 }
@@ -212,6 +218,7 @@ static int xbeeDecode_sense_1(struct pt *pt)
     {
       receiver_1.TempflushTotal += (char)xbeeDecomp_1[i];
     }
+    Serial.println(receiver_1.TempflushTotal);
     classifyNow_1 = true;
     xbeeDecompInd_1 = 0;
     LogPrintln(&receiver_1,3,F("XBEEDECODE_SENSE_1 : CALLED"));
@@ -228,21 +235,28 @@ static int classifyStuff_sense_1(struct pt *pt)
     LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CALLED"));
     
     if((receiver_1.TempflushTotal.indexOf("GPRMC") >= 0) || (receiver_1.TempflushTotal.indexOf("GPGGA") >= 0)){
-      receiver_1.GPSflushTotal = receiver_1.TempflushTotal;
+      uint8_t gpsStart = receiver_1.TempflushTotal.indexOf("$G");
+      receiver_1.GPSflushTotal = receiver_1.TempflushTotal.substring(gpsStart);
       GPSdata.print(receiver_1.Name);
       GPSdata.print(F(" : "));
       GPSdata.print(receiver_1.GPSflushTotal);
       GPSdata.flush();
       LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS"));
+      Serial.println(receiver_1.GPSflushTotal);
     }
     else{
-      receiver_1.OtherflushTotal = receiver_1.TempflushTotal;
-      OtherData.print(receiver_1.Name);
-      OtherData.print(F(" : "));
-      OtherData.print(receiver_1.GPSflushTotal);
-      GPSdata.flush();
-      LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED OTHERSTUFF"));
+      uint8_t otherStart = receiver_1.TempflushTotal.indexOf("MS,");
+      if(otherStart >= 0){
+        receiver_1.OtherflushTotal = receiver_1.TempflushTotal.substring(otherStart-16);
+        OtherData.print(receiver_1.Name);
+        OtherData.print(F(" : "));
+        OtherData.print(receiver_1.OtherflushTotal);
+        OtherData.flush();
+        LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED OTHERSTUFF"));
+        Serial.println(receiver_1.OtherflushTotal);
+      }
     }
+    classifyNow_1 = false;
   PT_END(pt);
 }
 
@@ -266,7 +280,7 @@ static int parseOther_sense_1(struct pt *pt)
   PT_BEGIN(pt);
   PT_WAIT_UNTIL(pt, receiver_1.OtherflushTotal.length());
     LogPrintln(&receiver_1,3,F("PARSEOTHER_SENSE_1 : CALLED"));
-    parseOther_1();
+    parseOther_1(&receiver_1);
     updateHUDOther_1 = true;
   PT_END(pt);
 }
@@ -280,7 +294,8 @@ static int updateHUD_sense_1(struct pt *pt)
   PT_BEGIN(pt);
   PT_WAIT_UNTIL(pt, (updateHUDGPS_1 || updateHUDOther_1));
     LogPrintln(&receiver_1,3,F("UPDATEHUD_SENSE_1 : CALLED"));
-    printPrep_1();  
+    printPrep_1();
+    printHUD();  
   PT_END(pt);
 }
 
@@ -300,37 +315,61 @@ static int printHUD_sense(struct pt *pt)
 //*************************************************************************************************************
 //*******                                 parseOther_1
 //*************************************************************************************************************
-void parseOther_1(){
+void parseOther_1(thing* receiver){
   LogPrintln(&receiver_1,3,F("PARSEOTHER_1 : CALLED"));
   
-  uint8_t pretimeadd = receiver_1.OtherflushTotal.indexOf(",");             // finds the locations on the 
-  uint8_t preElev = receiver_1.OtherflushTotal.indexOf("," , pretimeadd+1); // string for each datafield
-  uint8_t preAccX = receiver_1.OtherflushTotal.indexOf(":");                //
-  uint8_t preAccY = receiver_1.OtherflushTotal.indexOf("," , preAccX+1);    //
-  uint8_t preAccZ = receiver_1.OtherflushTotal.indexOf("," , preAccY+1);    //
+  uint8_t pretimeadd = receiver->OtherflushTotal.indexOf(",");             // finds the locations on the 
+  uint8_t preElev = receiver->OtherflushTotal.indexOf("," , pretimeadd+1); // string for each datafield
+  uint8_t preAccX = receiver->OtherflushTotal.indexOf(",", preElev+1);                //
+  uint8_t preAccY = receiver->OtherflushTotal.indexOf("," , preAccX+1);    //
+  uint8_t preAccZ = receiver->OtherflushTotal.indexOf("," , preAccY+1);    //
                                                                             //
-  uint8_t preGyroX = receiver_1.OtherflushTotal.indexOf("," , preAccZ+1);   //
-  uint8_t preGyroY = receiver_1.OtherflushTotal.indexOf("," , preGyroX+1);  //
-  uint8_t preGyroZ = receiver_1.OtherflushTotal.indexOf("," , preGyroY+1);  //
+  uint8_t preGyroX = receiver->OtherflushTotal.indexOf("," , preAccZ+1);   //
+  uint8_t preGyroY = receiver->OtherflushTotal.indexOf("," , preGyroX+1);  //
+  uint8_t preGyroZ = receiver->OtherflushTotal.indexOf("," , preGyroY+1);  //
                                                                             //
-  uint8_t preMagX = receiver_1.OtherflushTotal.indexOf("," , preGyroZ+1);   //
-  uint8_t preMagY = receiver_1.OtherflushTotal.indexOf("," , preMagX+1);    //
-  uint8_t preMagZ = receiver_1.OtherflushTotal.indexOf("," , preMagY+1);    //
+  uint8_t preMagX = receiver->OtherflushTotal.indexOf("," , preGyroZ+1);   //
+  uint8_t preMagY = receiver->OtherflushTotal.indexOf("," , preMagX+1);    //
+  uint8_t preMagZ = receiver->OtherflushTotal.indexOf("," , preMagY+1);    //
                                                                             //
-  uint8_t preEulX = receiver_1.OtherflushTotal.indexOf("," , preMagZ+1);    //
-  uint8_t preEulY = receiver_1.OtherflushTotal.indexOf("," , preEulX+1);    //
-  uint8_t preEulZ = receiver_1.OtherflushTotal.indexOf("," , preEulY+1);    //
+  uint8_t preEulX = receiver->OtherflushTotal.indexOf("," , preMagZ+1);    //
+  uint8_t preEulY = receiver->OtherflushTotal.indexOf("," , preEulX+1);    //
+  uint8_t preEulZ = receiver->OtherflushTotal.indexOf("," , preEulY+1);    //
                                                                             //
-  uint8_t preGravX = receiver_1.OtherflushTotal.indexOf("," , preEulZ+1);   //
-  uint8_t preGravY = receiver_1.OtherflushTotal.indexOf("," , preGravX+1);  //
-  uint8_t preGravZ = receiver_1.OtherflushTotal.indexOf("," , preGravY+1);  //
+  uint8_t preGravX = receiver->OtherflushTotal.indexOf("," , preEulZ+1);   //
+  uint8_t preGravY = receiver->OtherflushTotal.indexOf("," , preGravX+1);  //
+  uint8_t preGravZ = receiver->OtherflushTotal.indexOf("," , preGravY+1);  //
                                                                             //
-  uint8_t preTemp = receiver_1.OtherflushTotal.indexOf("," , preGravZ+1);   //
-  uint8_t prePressure = receiver_1.OtherflushTotal.indexOf("," , preTemp+1);  //
-  uint8_t preHumidity = receiver_1.OtherflushTotal.indexOf("," , prePressure+1);  //
-  uint8_t preAltAltitude = receiver_1.OtherflushTotal.indexOf("," , preHumidity+1); //
-  uint8_t prePitot = receiver_1.OtherflushTotal.indexOf("," , preAltAltitude+1);  //
-  uint8_t postPitot = receiver_1.OtherflushTotal.indexOf("--");                   //
+  uint16_t preTemp = receiver->OtherflushTotal.indexOf("," , preGravZ+1);   //
+  uint16_t prePressure = receiver->OtherflushTotal.indexOf("," , preTemp+1);  //
+  uint16_t preHumidity = receiver->OtherflushTotal.indexOf("," , prePressure+1);  //
+  uint16_t preAltAltitude = receiver->OtherflushTotal.indexOf("," , preHumidity+1); //
+  uint16_t prePitot = receiver->OtherflushTotal.indexOf("," , preAltAltitude+1);  //
+  uint16_t postPitot = receiver->OtherflushTotal.indexOf("--");                   //
+
+  Serial.println(pretimeadd);
+  Serial.println(preElev);
+  Serial.println(preAccX);
+  Serial.println(preAccY);
+  Serial.println(preAccZ);
+  Serial.println(preGyroX);
+  Serial.println(preGyroY);
+  Serial.println(preGyroZ);
+  Serial.println(preMagX);
+  Serial.println(preMagY);
+  Serial.println(preMagZ);
+  Serial.println(preGravX);
+  Serial.println(preGravY);
+  Serial.println(preGravZ);
+  Serial.println(preTemp);
+  Serial.println(prePressure);
+  Serial.println(preHumidity);
+  Serial.println(preAltAltitude);
+  Serial.println(prePitot);
+  Serial.println(postPitot);
+
+  
+  
 
   if(pretimeadd + preElev + preAccX + preAccY + preAccZ + preGyroX + preGyroY + preGyroZ + preMagX + preMagY + preMagZ + preEulX + preEulY + preEulZ + preGravX + preGravY + preGravZ + preTemp + prePressure + preHumidity + preAltAltitude + prePitot + postPitot < 22)
   {
@@ -340,28 +379,28 @@ void parseOther_1(){
   }
 
   // parses up the datafields and assigns them to the corresponding struct members
-  receiver_1.acc.x = receiver_1.OtherflushTotal.substring(preAccX+1,preAccY);
-  receiver_1.acc.y = receiver_1.OtherflushTotal.substring(preAccY+1,preAccZ);
-  receiver_1.acc.z = receiver_1.OtherflushTotal.substring(preAccZ+1,preGyroX);
+  receiver->acc.x = receiver->OtherflushTotal.substring(preAccX+1,preAccY);
+  receiver->acc.y = receiver->OtherflushTotal.substring(preAccY+1,preAccZ);
+  receiver->acc.z = receiver->OtherflushTotal.substring(preAccZ+1,preGyroX);
 
-  receiver_1.gyro.x = receiver_1.OtherflushTotal.substring(preGyroX+1,preGyroY);
-  receiver_1.gyro.y = receiver_1.OtherflushTotal.substring(preGyroY+1,preGyroZ);
-  receiver_1.gyro.z = receiver_1.OtherflushTotal.substring(preGyroZ+1,preMagX);
+  receiver->gyro.x = receiver->OtherflushTotal.substring(preGyroX+1,preGyroY);
+  receiver->gyro.y = receiver->OtherflushTotal.substring(preGyroY+1,preGyroZ);
+  receiver->gyro.z = receiver->OtherflushTotal.substring(preGyroZ+1,preMagX);
 
-  receiver_1.mag.x = receiver_1.OtherflushTotal.substring(preMagX+1,preMagY);
-  receiver_1.mag.y = receiver_1.OtherflushTotal.substring(preMagY+1,preMagZ);
-  receiver_1.mag.z = receiver_1.OtherflushTotal.substring(preMagZ+1,preEulX);
+  receiver->mag.x = receiver->OtherflushTotal.substring(preMagX+1,preMagY);
+  receiver->mag.y = receiver->OtherflushTotal.substring(preMagY+1,preMagZ);
+  receiver->mag.z = receiver->OtherflushTotal.substring(preMagZ+1,preEulX);
 
-  receiver_1.eul.x = receiver_1.OtherflushTotal.substring(preEulX+1,preEulY);
-  receiver_1.eul.y = receiver_1.OtherflushTotal.substring(preEulY+1,preEulZ);
-  receiver_1.eul.z = receiver_1.OtherflushTotal.substring(preEulZ+1,preTemp);
+  receiver->eul.x = receiver->OtherflushTotal.substring(preEulX+1,preEulY);
+  receiver->eul.y = receiver->OtherflushTotal.substring(preEulY+1,preEulZ);
+  receiver->eul.z = receiver->OtherflushTotal.substring(preEulZ+1,preTemp);
 
-  receiver_1.pressure = receiver_1.OtherflushTotal.substring(prePressure+1,preHumidity);
-  receiver_1.temperature = receiver_1.OtherflushTotal.substring(preTemp+1,prePressure);
-  receiver_1.humidity = receiver_1.OtherflushTotal.substring(preHumidity+1,preAltAltitude);
-  receiver_1.pitot = receiver_1.OtherflushTotal.substring(prePitot+1,postPitot);
+  receiver->pressure = receiver->OtherflushTotal.substring(prePressure+1,preHumidity);
+  receiver->temperature = receiver->OtherflushTotal.substring(preTemp+1,prePressure);
+  receiver->humidity = receiver->OtherflushTotal.substring(preHumidity+1,preAltAltitude);
+  receiver->pitot = receiver->OtherflushTotal.substring(prePitot+1,postPitot);
     
-  receiver_1.OtherflushTotal = "";
+  receiver->OtherflushTotal = "";
   LogPrintln(&receiver_1,3,F("PARSEOTHER_1 : OTHER SENSOR SENTENCE DETECTED/PARSED, BUFFER CLEARED"));
   
 }
@@ -386,9 +425,9 @@ void parseGPS_1(){
       return;
     }
 
-    receiver_1.Time = receiver_1.GPSflushTotal(preTime + 1,preStatus);
-    receiver_1.lat = receiver_1.GPSflushTotal(preLat + 1,preLon);
-    receiver_1.lon = receiver_1.GPSflushTotal(preLon + 1,postLonSuffix);
+    receiver_1.Time = receiver_1.GPSflushTotal.substring(preTime + 1,preStatus);
+    receiver_1.lat = receiver_1.GPSflushTotal.substring(preLat + 1,preLon);
+    receiver_1.lon = receiver_1.GPSflushTotal.substring(preLon + 1,postLonSuffix);
     
     receiver_1.GPSflushTotal = "";
     LogPrintln(&receiver_1,3,F("PARSEGPS_1 : RMC SENTENCE DETECTED/PARSED, BUFFER CLEARED"));
@@ -413,11 +452,11 @@ void parseGPS_1(){
       return;
     }
 
-    receiver_1.Time = receiver_1.GPSflushTotal(preTime + 1,preLat);
-    receiver_1.lat = receiver_1.GPSflushTotal(preLat + 1,preLon);
-    receiver_1.lon = receiver_1.GPSflushTotal(preLon + 1,preFixQuality);
-    receiver_1.fixQual = receiver_1.GPSflushTotal(preFixQuality + 1,preSatTracked);
-    receiver_1.elev = receiver_1.GPSflushTotal.(preElev + 1,postElev);
+    receiver_1.Time = receiver_1.GPSflushTotal.substring(preTime + 1,preLat);
+    receiver_1.lat = receiver_1.GPSflushTotal.substring(preLat + 1,preLon);
+    receiver_1.lon = receiver_1.GPSflushTotal.substring(preLon + 1,preFixQuality);
+    receiver_1.fixQual = receiver_1.GPSflushTotal.substring(preFixQuality + 1,preSatTracked);
+    receiver_1.elev = receiver_1.GPSflushTotal.substring(preElev + 1,postElev);
     
     receiver_1.GPSflushTotal = "";
     LogPrintln(&receiver_1,3,F("PARSEGPS_1 : GGA SENTENCE DETECTED/PARSED, BUFFER CLEARED"));
@@ -436,10 +475,10 @@ void printPrep_1(){
   LogPrintln(&receiver_1,3,F("PRINTPREP_1 : CALLED"));
   if(!nameSpaced_1){
     LogPrintln(&receiver_1,3,F("PRINTPREP_1 : UPDATING THE NAME FIELD"));
-    uint8_t preName_space = (COLUMN_WIDTH - receiver_1.Name)/2;
-    uint8_t postName_space = COLUMN_WIDTH - (preName_space + receiver_1.Name);
+    uint8_t preName_space = (COLUMN_WIDTH - receiver_1.Name.length())/2;
+    uint8_t postName_space = COLUMN_WIDTH - (preName_space + receiver_1.Name.length());
     for(int i = 0; i < preName_space; i++){
-      receiver_1.Name = F(" ") + receiver_1.Name;
+      receiver_1.Name = " " + receiver_1.Name;
     }
     for(int i = 0; i < postName_space; i++){
       receiver_1.Name = receiver_1.Name + F(" ");
@@ -450,76 +489,76 @@ void printPrep_1(){
   if(updateHUDOther_1){
     LogPrintln(&receiver_1,3,F("PRINTPREP_1 : UPDATEHUDOTHER_1"));
  
-    receiver_1.acc.x = F("ACC X : ") + receiver_1.acc.x;
-    receiver_1.acc.y = F("ACC X : ") + receiver_1.acc.x;
-    receiver_1.acc.z = F("ACC X : ") + receiver_1.acc.x;
+    receiver_1.acc.x = "ACC X : " + receiver_1.acc.x;
+    receiver_1.acc.y = "ACC Y : " + receiver_1.acc.y;
+    receiver_1.acc.z = "ACC Z : " + receiver_1.acc.z;
   
-    receiver_1.gyro.x = F("GYRO X : ") + receiver_1.gyro.x;
-    receiver_1.gyro.y = F("GYRO X : ") + receiver_1.gyro.x;
-    receiver_1.gyro.z = F("GYRO X : ") + receiver_1.gyro.x;
+    receiver_1.gyro.x = "GYRO X : " + receiver_1.gyro.x;
+    receiver_1.gyro.y = "GYRO Y : " + receiver_1.gyro.y;
+    receiver_1.gyro.z = "GYRO Z : " + receiver_1.gyro.z;
   
-    receiver_1.mag.x = F("MAG X : ") + receiver_1.mag.x;
-    receiver_1.mag.y = F("MAG X : ") + receiver_1.mag.x;
-    receiver_1.mag.z = F("MAG X : ") + receiver_1.mag.x;
+    receiver_1.mag.x = "MAG X : " + receiver_1.mag.x;
+    receiver_1.mag.y = "MAG Y : " + receiver_1.mag.y;
+    receiver_1.mag.z = "MAG Z : " + receiver_1.mag.z;
   
-    receiver_1.eul.x = F("EUL X : ") + receiver_1.eul.x;
-    receiver_1.eul.y = F("EUL X : ") + receiver_1.eul.x;
-    receiver_1.eul.z = F("EUL X : ") + receiver_1.eul.x;
+    receiver_1.eul.x = "EUL X : " + receiver_1.eul.x;
+    receiver_1.eul.y = "EUL Y : " + receiver_1.eul.y;
+    receiver_1.eul.z = "EUL Z : " + receiver_1.eul.z;
   
-    receiver_1.pressure = F("PRESS : ") + receiver_1.pressure;
-    receiver_1.temperature = F("TEMP : ") + receiver_1.temperature;
-    receiver_1.humidity = F("HUMID : ") + receiver_1.humidity;
-    receiver_1.pitot = F("PITOT : ") + receiver_1.pitot;
+    receiver_1.pressure = "PRESS : " + receiver_1.pressure;
+    receiver_1.temperature = "TEMP : " + receiver_1.temperature;
+    receiver_1.humidity = "HUMID : " + receiver_1.humidity;
+    receiver_1.pitot = "PITOT : " + receiver_1.pitot;
 
   
-    uint8_t accSpace_x_1 = (11 - receiver_1.acc.x.length());
+    uint8_t accSpace_x_1 = (15 - receiver_1.acc.x.length());
     for(int i = 0; i < accSpace_x_1; i++){
       receiver_1.acc.x += F(" ");
     }
-    uint8_t accSpace_y_1 = (11 - receiver_1.acc.y.length());
+    uint8_t accSpace_y_1 = (15 - receiver_1.acc.y.length());
     for(int i = 0; i < accSpace_y_1; i++){
       receiver_1.acc.y += F(" ");
     }
-    uint8_t accSpace_z_1 = (11 - receiver_1.acc.z.length());
+    uint8_t accSpace_z_1 = (15 - receiver_1.acc.z.length());
     for(int i = 0; i < accSpace_z_1; i++){
       receiver_1.acc.z += F(" ");
     }
 
-    uint8_t gyroSpace_x_1 = (11 - receiver_1.gyro.x.length());
+    uint8_t gyroSpace_x_1 = (15 - receiver_1.gyro.x.length());
     for(int i = 0; i < gyroSpace_x_1; i++){
       receiver_1.gyro.x += F(" ");
     }
-    uint8_t gyroSpace_y_1 = (11 - receiver_1.gyro.y.length());
+    uint8_t gyroSpace_y_1 = (15 - receiver_1.gyro.y.length());
     for(int i = 0; i < gyroSpace_y_1; i++){
       receiver_1.gyro.y += F(" ");
     }
-    uint8_t gyroSpace_z_1 = (11 - receiver_1.gyro.z.length());
+    uint8_t gyroSpace_z_1 = (15 - receiver_1.gyro.z.length());
     for(int i = 0; i < gyroSpace_z_1; i++){
       receiver_1.gyro.z += F(" ");
     }
 
-    uint8_t magSpace_x_1 = (11 - receiver_1.mag.x.length());
+    uint8_t magSpace_x_1 = (15 - receiver_1.mag.x.length());
     for(int i = 0; i < magSpace_x_1; i++){
       receiver_1.mag.x += F(" ");
     }
-    uint8_t magSpace_y_1 = (11 - receiver_1.mag.y.length());
+    uint8_t magSpace_y_1 = (15 - receiver_1.mag.y.length());
     for(int i = 0; i < magSpace_y_1; i++){
       receiver_1.mag.y += F(" ");
     }
-    uint8_t magSpace_z_1 = (11 - receiver_1.mag.z.length());
+    uint8_t magSpace_z_1 = (15 - receiver_1.mag.z.length());
     for(int i = 0; i < magSpace_z_1; i++){
       receiver_1.mag.z += F(" ");
     }
 
-    uint8_t eulSpace_x_1 = (11 - receiver_1.eul.x.length());
+    uint8_t eulSpace_x_1 = (15 - receiver_1.eul.x.length());
     for(int i = 0; i < eulSpace_x_1; i++){
       receiver_1.eul.x += F(" ");
     }
-    uint8_t eulSpace_y_1 = (11 - receiver_1.eul.y.length());
+    uint8_t eulSpace_y_1 = (15 - receiver_1.eul.y.length());
     for(int i = 0; i < eulSpace_y_1; i++){
       receiver_1.eul.y += F(" ");
     }
-    uint8_t eulSpace_z_1 = (11 - receiver_1.eul.z.length());
+    uint8_t eulSpace_z_1 = (15 - receiver_1.eul.z.length());
     for(int i = 0; i < eulSpace_z_1; i++){
       receiver_1.eul.z += F(" ");
     }
@@ -545,25 +584,25 @@ void printPrep_1(){
       hudLines_1[0] = receiver_1.Name + F("|| ");
       for(int i = 0; i < COLUMN_WIDTH; i++)
       {
-        hudLines[1] += F(" ");
-        hudLines[5] += F(" ");
-        hudLines[6] += F(" ");
-        hudLines[11] += F(" ");
-        hudLines[12] += F(" ");
+        hudLines_1[1] += F(" ");
+        hudLines_1[5] += F(" ");
+        hudLines_1[6] += F(" ");
+        hudLines_1[11] += F(" ");
+        hudLines_1[12] += F(" ");
       }
-      hudLines[1] += F("|| ");
-      hudLines[5] += F("|| ");
-      hudLines[6] += F("|| ");
-      hudLines[11] += F("|| ");
-      hudLines[12] += F("|| ");
-      hudLines[7] = F("ACC        GYRO       MAG        || ");
+      hudLines_1[1] += F("|| ");
+      hudLines_1[5] += F("|| ");
+      hudLines_1[6] += F("|| ");
+      hudLines_1[11] += F("|| ");
+      hudLines_1[12] += F("|| ");
+      hudLines_1[7] = "ACC        GYRO       MAG        || ";
     }
   
     hudLines_1[8] = receiver_1.acc.x + receiver_1.gyro.x + receiver_1.mag.x + F("|| ");
     hudLines_1[9] = receiver_1.acc.y + receiver_1.gyro.y + receiver_1.mag.y + F("|| ");
     hudLines_1[10] = receiver_1.acc.z + receiver_1.gyro.z + receiver_1.mag.z + F("|| ");
     
-    hudLines_1[13] = F("EUL        ") + receiver_1.pressure + F("|| ");
+    hudLines_1[13] = "EUL        " + receiver_1.pressure + F("|| ");
     hudLines_1[14] = receiver_1.eul.x + receiver_1.temperature + F("|| ");
     hudLines_1[15] = receiver_1.eul.y + receiver_1.humidity + F("|| ");
     hudLines_1[16] = receiver_1.eul.z + receiver_1.pitot + F("|| ");
@@ -571,11 +610,11 @@ void printPrep_1(){
     updateHUDOther_1 = false;
   }
 
-  if(updateHUDGPS_1){
+  if(updateHUDGPS_1 == true){
     LogPrintln(&receiver_1,3,F("PRINTPREP_1 : updateHUDGPS_1"));
-    receiver_1.lat = F("LAT : ") + receiver_1.lat;
-    receiver_1.lon = F("LON : ") + receiver_1.lon;
-    receiver_1.elev = F("ELEV : ") + receiver_1.elev;
+    receiver_1.lat = "LAT : " + receiver_1.lat;
+    receiver_1.lon = "LON : " + receiver_1.lon;
+    receiver_1.elev ="ELEV : " + receiver_1.elev;
 
     uint8_t latSpace_1 = COLUMN_WIDTH - receiver_1.lat.length();
     uint8_t lonSpace_1 = COLUMN_WIDTH - receiver_1.lon.length();
@@ -608,11 +647,11 @@ void printHUD(){
   LogPrintln(&receiver_1,3,F("PRINTHUD : CALLED"));
 
   #ifndef XB_DEST_ADDR_2
-    for(i = 0; i < 17; i++){
+    for(int i = 0; i < 17; i++){
       Serial.println(hudLines_1[i]);
     }
   #else
-    for(i = 0; i < 17; i++){
+    for(int i = 0; i < 17; i++){
       Serial.print(hudLines_1[i]);
       Serial.println(hudLines_2[i]);
     }
@@ -627,22 +666,22 @@ void printHUD(){
 void stringReserveMem_1(){
   LogPrintln(&receiver_1,3,F("STRINGRESERVEMEM_1 : CALLED"));
   receiver_1.Name.reserve(COLUMN_WIDTH);
-  receiver_1.TempflushTotal.reserve(COLUMN_WIDTH);
-  receiver_1.OtherflushTotal.reserve(COLUMN_WIDTH);
-  receiver_1.GPSflushTotal.reserve(COLUMN_WIDTH);
-  receiver_1.Time.reserve(COLUMN_WIDTH);
-  receiver_1.lat.reserve(COLUMN_WIDTH);
-  receiver_1.lon.reserve(COLUMN_WIDTH);
-  receiver_1.elev.reserve(COLUMN_WIDTH);
-  receiver_1.fixQual.reserve(COLUMN_WIDTH);
-  receiver_1.pressure.reserve(COLUMN_WIDTH);
-  receiver_1.temperature.reserve(COLUMN_WIDTH);
-  receiver_1.humidity.reserve(COLUMN_WIDTH);
-  receiver_1.pitot.reserve(COLUMN_WIDTH);
-
-  for(int i = 0; i < 17; i++){
-     hudLines_1[i].reserve(COLUMN_WIDTH);
-  }
+  receiver_1.TempflushTotal.reserve(300);
+  receiver_1.OtherflushTotal.reserve(700);
+  receiver_1.GPSflushTotal.reserve(700);
+//  receiver_1.Time.reserve(COLUMN_WIDTH);
+//  receiver_1.lat.reserve(COLUMN_WIDTH);
+//  receiver_1.lon.reserve(COLUMN_WIDTH);
+//  receiver_1.elev.reserve(COLUMN_WIDTH);
+//  receiver_1.fixQual.reserve(COLUMN_WIDTH);
+//  receiver_1.pressure.reserve(COLUMN_WIDTH);
+//  receiver_1.temperature.reserve(COLUMN_WIDTH);
+//  receiver_1.humidity.reserve(COLUMN_WIDTH);
+//  receiver_1.pitot.reserve(COLUMN_WIDTH);
+//
+//  for(int i = 0; i < 17; i++){
+//     hudLines_1[i].reserve(COLUMN_WIDTH);
+//  }
 }
 
 //*************************************************************************************************************
@@ -722,14 +761,14 @@ uint16_t getLength(const __FlashStringHelper *message)
 }
 
 void LogPrintln(thing* thisThing, uint8_t priority, const char* message){
-  if((!(LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush((uint16_t)(strlen(message) + 7 + thisThing->Name.length()));
     LogString = LogString + Log_classify(priority) + F(" : ") + thisThing->Name + F(" : ");
     LogString.concat(message);
     LogString += F("\n");
   }
 
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -739,7 +778,7 @@ void LogPrintln(thing* thisThing, uint8_t priority, const char* message){
 } 
 
 void LogPrintln(thing* thisThing, uint8_t priority, char message[], uint16_t message_length){
-  if((!(LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush(message_length + 7 + thisThing->Name.length());
     LogString = LogString + Log_classify(priority) + F(" : ") + thisThing->Name + F(" : ");
     for(int i = 0; i < message_length; i++){
@@ -748,7 +787,7 @@ void LogPrintln(thing* thisThing, uint8_t priority, char message[], uint16_t mes
     LogString += F("\n"); 
   }
   
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -761,12 +800,12 @@ void LogPrintln(thing* thisThing, uint8_t priority, char message[], uint16_t mes
 }
 
 void LogPrintln(thing* thisThing, uint8_t priority, String message){
-  if((!(LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush(message.length() + 7 + thisThing->Name.length());
     LogString = LogString + Log_classify(priority) + " : " + thisThing->Name + F(" : ");
     LogString = LogString +  message + "\n" ;
   }
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -776,13 +815,13 @@ void LogPrintln(thing* thisThing, uint8_t priority, String message){
 }
 
 void LogPrintln(thing* thisThing, uint8_t priority, const __FlashStringHelper* message){
-  if(((LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush(getLength(message) + 7 + thisThing->Name.length());
     LogString = LogString + Log_classify(priority) + " : " + thisThing->Name + F(" : ");
     LogString.concat(message);
     LogString +=  "\n";
   }
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -792,7 +831,7 @@ void LogPrintln(thing* thisThing, uint8_t priority, const __FlashStringHelper* m
 }
 
 void LogPrint(thing* thisThing, uint8_t priority, char message[], uint16_t message_length){
-  if((!(LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush(message_length + 7 + thisThing->Name.length());
     LogString = LogString + Log_classify(priority) + F(" : ") + thisThing->Name + F(" : ");
     for(int i = 0; i < message_length; i++){
@@ -800,7 +839,7 @@ void LogPrint(thing* thisThing, uint8_t priority, char message[], uint16_t messa
     }
   }
   
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -812,12 +851,12 @@ void LogPrint(thing* thisThing, uint8_t priority, char message[], uint16_t messa
 }
 
 void LogPrint(thing* thisThing, uint8_t priority, String message){
-  if((!(LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush(message.length() + 7 + thisThing->Name.length());
     LogString = LogString + Log_classify(priority) + " : " + thisThing->Name + F(" : ");
     LogString = LogString +  message;
   }
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -827,12 +866,12 @@ void LogPrint(thing* thisThing, uint8_t priority, String message){
 }
 
 void LogPrint(thing* thisThing, uint8_t priority, const __FlashStringHelper* message){
-  if((!(LogPriority_sd == priority)) || (!LogExclusive && (priority <= LogPriority_sd))){
+  if(((LogPriority_sd == priority)) || ((!LogExclusive) && (priority <= LogPriority_sd))){
     Log_autoFlush(getLength(message) + 7 + thisThing->Name.length());
     LogString = LogString + Log_classify(priority) + " : " + thisThing->Name + F(" : ");
     LogString.concat(message);
   }
-  if((!(LogPriority_sm == priority)) || (!LogExclusive && (priority <= LogPriority_sm))){  
+  if(((LogPriority_sm == priority)) || ((!LogExclusive) && (priority <= LogPriority_sm))){  
     Serial.print(Log_classify(priority));
     Serial.print(F(" : "));
     Serial.print(thisThing->Name);
@@ -1161,14 +1200,14 @@ bool makeFiles(){
   bool gpsFunctionState = true;
   bool otherFunctionState = true;
   bool logFunctionState = true;
-
+  
   #ifdef GPS_FILENAME
+  
     uint8_t gpsfile_size = strlen(GPS_FILENAME);
     uint8_t gpssuffix_ind = gpsfile_size - 6;
     char gpsfile[gpsfile_size];
     strcpy(gpsfile, GPS_FILENAME);
     bool gpsfind_state = false;
-    
     for(uint8_t i = 0; i < 100; i++)          // for the gps file 
     {                                         // for all numbers from 0 to 100
       gpsfile[gpssuffix_ind] = '0' + i/10;                // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
@@ -1210,18 +1249,18 @@ bool makeFiles(){
       
       gpsFunctionState = false;
     }
+    
   #endif
 
 
   #ifdef OTHER_FILENAME
-
+   
     //delay(100);
     uint8_t other_size = strlen(OTHER_FILENAME);
     uint8_t othersuffix_ind = other_size - 6;
     char otherfile[other_size];
     strcpy(otherfile, OTHER_FILENAME);
     bool otherfind_state = false;
-    
     for(uint8_t i = 0; i < 100; i++)          // for the gps file 
     {                                         // for all numbers from 0 to 100
       otherfile[othersuffix_ind] = '0' + i/10;                // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
@@ -1262,17 +1301,17 @@ bool makeFiles(){
       //Serial.println(F("MAKEFILES: Failed to find a good filename"));
       otherFunctionState = false;
     }
+    
   #endif
 
   #ifdef LOG_FILENAME
-
+  
     //delay(100);
     uint8_t log_size = strlen(LOG_FILENAME);
     uint8_t logsuffix_ind = log_size - 6;
     char logfile[log_size];
     strcpy(logfile, LOG_FILENAME);
     bool logfind_state = false;
-    
     for(uint8_t i = 0; i < 100; i++)          // for the gps file 
     {                                         // for all numbers from 0 to 100
       logfile[logsuffix_ind] = '0' + i/10;                // replace the 6th character with a 0 plus the 1st digit of the division of i and 10
@@ -1315,33 +1354,41 @@ bool makeFiles(){
       //Serial.println(F("MAKEFILES:Failed to find a good filename"));
       logFunctionState = false;
     }
+    
   #endif
 
   rtn = (gpsFunctionState && otherFunctionState && logFunctionState);
 
-  if(!rtn)
-  {
+  if(!rtn){
+    
     #ifdef GPS_FILENAME
-      if(gpsFunctionState){
-        GPSdata.close();
-        SD.remove(gpsfile);
-      }
+    
+    if(gpsFunctionState){
+      GPSdata.close();
+      SD.remove(gpsfile);
+    }
+      
     #endif
-
+  
     #ifdef OTHER_FILENAME
-      if(otherFunctionState){
-        OtherData.close();
-        SD.remove(otherfile);
-      }
+    
+    if(otherFunctionState){
+      OtherData.close();
+      SD.remove(otherfile);
+    }
+      
     #endif
-
+  
     #ifdef LOG_FILENAME
-      if(logFunctionState){
-        logFile.close();
-        SD.remove(logfile);
-      }
+    
+    if(logFunctionState){
+      logFile.close();
+      SD.remove(logfile);
+    }
+      
     #endif
   }
+  
 
   LogPrint(&System,3,F("MAKEFILE: LEAVING"));
   
@@ -1380,8 +1427,8 @@ void setup() {
   delay(5000);
   Serial.begin(115200);
 
-  Log_reserveMem(100);
-  Log_setPriority(3,3);
+  Log_reserveMem(1000);
+  Log_setPriority((uint8_t)3,(uint8_t)3);
   LogPrintln(&System,3,F("SETUP : BEGIN INITIALIZING"));
   
   System.Name = "System";
@@ -1443,14 +1490,14 @@ void setup() {
 //*******                                 LOOP
 //*************************************************************************************************************
 void loop() {
-
+  xbee_1.protothreadLoop();
   xbeeReceive_sense_1(&xbeeReceivePT_1);
   xbeeDecomp_sense_1(&xbeeDecompPT_1);
   xbeeDecode_sense_1(&xbeeDecodePT_1);
   classifyStuff_sense_1(&classifyPT_1);
-  parseGPS_sense_1(&parseGPSPT_1);
-  parseOther_sense_1(&parseOtherPT_1);
-  updateHUD_sense_1(&updateHUDPT_1);
-  printHUD_sense(&printHUDPT);
-  
+  //parseGPS_sense_1(&parseGPSPT_1);
+  //parseOther_sense_1(&parseOtherPT_1);
+  //updateHUD_sense_1(&updateHUDPT_1);
+  //printHUD_sense(&printHUDPT);
+
 }
