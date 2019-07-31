@@ -165,8 +165,8 @@
     #define gndlvlPress 1023.4   // ground level pressure for calculating elevation  
                                   //  (in mbar, even though the pressure output is in different units ¯\_(ツ)_/¯ )
     
-    uint8_t stringGrab_initial[500];    // char array for uncompressed stringGrab data
-    uint8_t stringGrab_compressed[500]; // char array for compressed stringGrabdata
+    uint8_t stringGrab_initial[700];    // char array for uncompressed stringGrab data
+    uint8_t stringGrab_compressed[700]; // char array for compressed stringGrabdata
     uint8_t stringChop_payload[256];    // char array for xbee sendPayload
     
     uint16_t compressed_size;           // how long the stringGrab_compressed array is
@@ -524,7 +524,7 @@
     //*************************************************************************************************************
     static int stringGrabGPS_sense(struct pt *pt){
       PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, stringGrab_init && !(stringGrab_gps) && GPSwriteCount == 1);
+      PT_WAIT_UNTIL(pt, (stringGrab_init) && (!stringGrab_gps) && (GPSwriteCount == 1));
         stringGrab_gps = true;
         stringGrab_init = false;
         stringGrab(GPSflushTotal);
@@ -536,7 +536,7 @@
     //*************************************************************************************************************
     static int stringGrabOther_sense(struct pt *pt){
       PT_BEGIN(pt);
-      PT_WAIT_UNTIL(pt, stringGrab_gps && !(stringGrab_other) && writeCount == 1);
+      PT_WAIT_UNTIL(pt, (stringGrab_gps) && (!stringGrab_other) && (writeCount == 1));
         stringGrab_other = true;
         stringGrab_gps = false;
         compressed_size = stringGrab(OtherflushTotal);
@@ -945,10 +945,10 @@
       {
         other_size = input_string.length();
         
-        while(!concatted)
-        {
-          concatted = stringGrab_temp.concat(input_string);
-        }
+        
+        
+        stringGrab_temp += input_string;
+        
         
         uint16_t total_size = gps_size + other_size;
         for(int i = 0; i < total_size ; i++)
@@ -957,55 +957,71 @@
         }
         //stringGrab_temp.toCharArray(stringGrab_initial,total_size);
     
-        for(int i = (total_size - 1); i >= 0 ; i--)
-        {
-          stringGrab_initial[i+6] = stringGrab_initial[i];
+//        for(int i = (total_size - 1); i >= 0 ; i--)
+//        {
+//          stringGrab_initial[i+6] = stringGrab_initial[i];
+//        }
+//    
+//        uint8_t hundreds = 0;
+//        uint8_t tens = 0;
+//        uint16_t tempNum = gps_size;
+//        while(tempNum - 100 >= 0)
+//        {
+//          tempNum -= 100;
+//          hundreds++;
+//        }
+//        while(tempNum - 10 >= 0)
+//        {
+//          tempNum -= 10;
+//          tens++;
+//        }
+//        stringGrab_initial[0] = hundreds;
+//        stringGrab_initial[1] = tens;
+//        stringGrab_initial[2] = (uint8_t)tempNum;
+//    
+//        hundreds = 0;
+//        tens = 0;
+//        tempNum = other_size;
+//        while(tempNum - 100 >= 0)
+//        {
+//          tempNum -= 100;
+//          hundreds++;
+//        }
+//        while(tempNum - 10 >= 0)
+//        {
+//          tempNum -= 10;
+//          tens++;
+//        }
+//        stringGrab_initial[3] = hundreds;
+//        stringGrab_initial[4] = tens;
+//        stringGrab_initial[5] = (uint8_t)tempNum;
+        Serial.print(F("gps_size = "));
+        Serial.println(gps_size);
+        Serial.print(F("other_size = "));
+        Serial.println(other_size);
+        Serial.print(F("total_size = "));
+        Serial.println(total_size);
+        Serial.println(F("stringGrab_temp : "));
+        Serial.println(stringGrab_temp);
+        Serial.println(F("stringGrab_initial : "));
+        for(int i = 0; i < total_size; i++){
+          Serial.print((char)stringGrab_initial[i]);
         }
-    
-        uint8_t hundreds = 0;
-        uint8_t tens = 0;
-        uint16_t tempNum = gps_size;
-        while(tempNum - 100 >= 0)
-        {
-          tempNum -= 100;
-          hundreds++;
-        }
-        while(tempNum - 10 >= 0)
-        {
-          tempNum -= 10;
-          tens++;
-        }
-        stringGrab_initial[0] = hundreds;
-        stringGrab_initial[1] = tens;
-        stringGrab_initial[2] = (uint8_t)tempNum;
-    
-        hundreds = 0;
-        tens = 0;
-        tempNum = other_size;
-        while(tempNum - 100 >= 0)
-        {
-          tempNum -= 100;
-          hundreds++;
-        }
-        while(tempNum - 10 >= 0)
-        {
-          tempNum -= 10;
-          tens++;
-        }
-        stringGrab_initial[3] = hundreds;
-        stringGrab_initial[4] = tens;
-        stringGrab_initial[5] = (uint8_t)tempNum;
+        Serial.println(F(""));
+
         
         gps_size = 0;
         other_size = 0;
         
         matchCaseCompress(stringGrab_initial,total_size);
         uint16_t compress_size = doubleStuff(stringGrab_initial,stringGrab_compressed,total_size);
+        usb.print(F("compressed size of doublestuffed gps + other : "));
+        usb.println(compress_size);
         return compress_size;
       }
       else if(stringGrab_gps)
       {
-        stringGrab_temp = "";
+        stringGrab_temp = input_string;
         gps_size = input_string.length();
         return 0;
       }
@@ -1721,6 +1737,7 @@
       GPSflushTotal.reserve(gpsTotalBytes);       // Reserves a block of SRAM for the String variables (to prevent memory fragmentation)
       OtherflushTotal.reserve(OtherTotalBytes);   //
       //gpsTime.reserve(20);                        //
+      stringGrab_temp.reserve(700);
         
       usb.begin(115200);
       usb.println(F("INITIALIZING"));
@@ -1838,6 +1855,12 @@
       xbee.protothreadLoop(); // enable watchdog timer
     //  usb.print(F("1,"));
     //  usb.println(freeMemory());
+
+      getGPS_sense(&getGpsPT);
+    //  usb.print(F("6,"));
+    //  usb.println(freeMemory());
+      stringGrabGPS_sense(&stringGrabGpsPT);
+    
       getPitot_sense(&getPitotPT);
     //  usb.print(F("2,"));
     //  usb.println(freeMemory());
@@ -1853,10 +1876,7 @@
       getIMUstatus_sense(&getIMUstatusPT);
     //  usb.print(F("5,"));
     //  usb.println(freeMemory());
-      getGPS_sense(&getGpsPT);
-    //  usb.print(F("6,"));
-    //  usb.println(freeMemory());
-      stringGrabGPS_sense(&stringGrabGpsPT);
+      
       //gpsError_sense(&gpsErrorPT);
     //  usb.print(F("7,"));
     //  usb.println(freeMemory());

@@ -221,6 +221,10 @@ static int xbeeDecode_sense_1(struct pt *pt)
     Serial.println(receiver_1.TempflushTotal);
     classifyNow_1 = true;
     xbeeDecompInd_1 = 0;
+    GPSdata.print(receiver_1.Name);
+    GPSdata.print(F(" : "));
+    GPSdata.print(receiver_1.TempflushTotal);
+    GPSdata.flush();
     LogPrintln(&receiver_1,3,F("XBEEDECODE_SENSE_1 : CALLED"));
   PT_END(pt);
 }
@@ -235,24 +239,68 @@ static int classifyStuff_sense_1(struct pt *pt)
     LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CALLED"));
     
     if((receiver_1.TempflushTotal.indexOf("GPRMC") >= 0) || (receiver_1.TempflushTotal.indexOf("GPGGA") >= 0)){
-      uint8_t gpsStart = receiver_1.TempflushTotal.indexOf("$G");
-      receiver_1.GPSflushTotal = receiver_1.TempflushTotal.substring(gpsStart);
-      GPSdata.print(receiver_1.Name);
-      GPSdata.print(F(" : "));
-      GPSdata.print(receiver_1.GPSflushTotal);
-      GPSdata.flush();
-      LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS"));
+      int gpsStart = receiver_1.TempflushTotal.indexOf("$G");
+      int otherStart = receiver_1.TempflushTotal.indexOf("MS,");
+      if(otherStart < 0){
+        receiver_1.GPSflushTotal = receiver_1.TempflushTotal.substring(gpsStart);
+        GPSdata.print(receiver_1.Name);
+        GPSdata.print(F(" : "));
+        GPSdata.print(receiver_1.GPSflushTotal);
+        GPSdata.flush();
+        LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS ONLY"));
+        Serial.println(receiver_1.GPSflushTotal);
+        Serial.println(receiver_1.OtherflushTotal);
+      }
+      else if(otherStart < gpsStart){
+        receiver_1.GPSflushTotal = receiver_1.TempflushTotal.substring(gpsStart);
+        receiver_1.OtherflushTotal = receiver_1.TempflushTotal.substring(otherStart-16,gpsStart);
+      
+        GPSdata.print(receiver_1.Name);
+        GPSdata.print(F(" : "));
+        GPSdata.print(receiver_1.GPSflushTotal);
+        GPSdata.flush();
+  
+        OtherData.print(receiver_1.Name);
+        OtherData.print(F(" : "));
+        OtherData.print(receiver_1.OtherflushTotal);
+        OtherData.flush();
+
+        LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS OTHER OTHER"));
+        Serial.println(receiver_1.GPSflushTotal);
+        Serial.println(receiver_1.OtherflushTotal);
+      }
+      else{
+        receiver_1.GPSflushTotal = receiver_1.TempflushTotal.substring(gpsStart,otherStart-16);
+        receiver_1.OtherflushTotal = receiver_1.TempflushTotal.substring(otherStart-16);
+      
+        GPSdata.print(receiver_1.Name);
+        GPSdata.print(F(" : "));
+        GPSdata.print(receiver_1.GPSflushTotal);
+        GPSdata.flush();
+  
+        OtherData.print(receiver_1.Name);
+        OtherData.print(F(" : "));
+        OtherData.print(receiver_1.OtherflushTotal);
+        OtherData.flush();
+
+        LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS OTHER OTHER"));
+        Serial.println(receiver_1.GPSflushTotal);
+        Serial.println(receiver_1.OtherflushTotal);
+      }
+      
+      LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED GPS OTHER OTHER"));
       Serial.println(receiver_1.GPSflushTotal);
+      Serial.println(receiver_1.OtherflushTotal);
     }
     else{
-      uint8_t otherStart = receiver_1.TempflushTotal.indexOf("MS,");
+      int otherStart = receiver_1.TempflushTotal.indexOf("MS,");
       if(otherStart >= 0){
         receiver_1.OtherflushTotal = receiver_1.TempflushTotal.substring(otherStart-16);
         OtherData.print(receiver_1.Name);
         OtherData.print(F(" : "));
         OtherData.print(receiver_1.OtherflushTotal);
         OtherData.flush();
-        LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED OTHERSTUFF"));
+        LogPrintln(&receiver_1,3,F("CLASSIFYSTUFF_SENSE_1 : CLASSIFIED JUST OTHERSTUFF"));
         Serial.println(receiver_1.OtherflushTotal);
       }
     }
@@ -318,34 +366,34 @@ static int printHUD_sense(struct pt *pt)
 void parseOther_1(thing* receiver){
   LogPrintln(&receiver_1,3,F("PARSEOTHER_1 : CALLED"));
   
-  uint8_t pretimeadd = receiver->OtherflushTotal.indexOf(",");             // finds the locations on the 
-  uint8_t preElev = receiver->OtherflushTotal.indexOf("," , pretimeadd+1); // string for each datafield
-  uint8_t preAccX = receiver->OtherflushTotal.indexOf(",", preElev+1);                //
-  uint8_t preAccY = receiver->OtherflushTotal.indexOf("," , preAccX+1);    //
-  uint8_t preAccZ = receiver->OtherflushTotal.indexOf("," , preAccY+1);    //
+  int pretimeadd = receiver->OtherflushTotal.indexOf(",");             // finds the locations on the 
+  int preElev = receiver->OtherflushTotal.indexOf("," , pretimeadd+1); // string for each datafield
+  int preAccX = receiver->OtherflushTotal.indexOf(",", preElev+1);                //
+  int preAccY = receiver->OtherflushTotal.indexOf("," , preAccX+1);    //
+  int preAccZ = receiver->OtherflushTotal.indexOf("," , preAccY+1);    //
                                                                             //
-  uint8_t preGyroX = receiver->OtherflushTotal.indexOf("," , preAccZ+1);   //
-  uint8_t preGyroY = receiver->OtherflushTotal.indexOf("," , preGyroX+1);  //
-  uint8_t preGyroZ = receiver->OtherflushTotal.indexOf("," , preGyroY+1);  //
+  int preGyroX = receiver->OtherflushTotal.indexOf("," , preAccZ+1);   //
+  int preGyroY = receiver->OtherflushTotal.indexOf("," , preGyroX+1);  //
+  int preGyroZ = receiver->OtherflushTotal.indexOf("," , preGyroY+1);  //
                                                                             //
-  uint8_t preMagX = receiver->OtherflushTotal.indexOf("," , preGyroZ+1);   //
-  uint8_t preMagY = receiver->OtherflushTotal.indexOf("," , preMagX+1);    //
-  uint8_t preMagZ = receiver->OtherflushTotal.indexOf("," , preMagY+1);    //
+  int preMagX = receiver->OtherflushTotal.indexOf("," , preGyroZ+1);   //
+  int preMagY = receiver->OtherflushTotal.indexOf("," , preMagX+1);    //
+  int preMagZ = receiver->OtherflushTotal.indexOf("," , preMagY+1);    //
                                                                             //
-  uint8_t preEulX = receiver->OtherflushTotal.indexOf("," , preMagZ+1);    //
-  uint8_t preEulY = receiver->OtherflushTotal.indexOf("," , preEulX+1);    //
-  uint8_t preEulZ = receiver->OtherflushTotal.indexOf("," , preEulY+1);    //
+  int preEulX = receiver->OtherflushTotal.indexOf("," , preMagZ+1);    //
+  int preEulY = receiver->OtherflushTotal.indexOf("," , preEulX+1);    //
+  int preEulZ = receiver->OtherflushTotal.indexOf("," , preEulY+1);    //
                                                                             //
-  uint8_t preGravX = receiver->OtherflushTotal.indexOf("," , preEulZ+1);   //
-  uint8_t preGravY = receiver->OtherflushTotal.indexOf("," , preGravX+1);  //
-  uint8_t preGravZ = receiver->OtherflushTotal.indexOf("," , preGravY+1);  //
+  int preGravX = receiver->OtherflushTotal.indexOf("," , preEulZ+1);   //
+  int preGravY = receiver->OtherflushTotal.indexOf("," , preGravX+1);  //
+  int preGravZ = receiver->OtherflushTotal.indexOf("," , preGravY+1);  //
                                                                             //
-  uint16_t preTemp = receiver->OtherflushTotal.indexOf("," , preGravZ+1);   //
-  uint16_t prePressure = receiver->OtherflushTotal.indexOf("," , preTemp+1);  //
-  uint16_t preHumidity = receiver->OtherflushTotal.indexOf("," , prePressure+1);  //
-  uint16_t preAltAltitude = receiver->OtherflushTotal.indexOf("," , preHumidity+1); //
-  uint16_t prePitot = receiver->OtherflushTotal.indexOf("," , preAltAltitude+1);  //
-  uint16_t postPitot = receiver->OtherflushTotal.indexOf("--");                   //
+  int preTemp = receiver->OtherflushTotal.indexOf("," , preGravZ+1);   //
+  int prePressure = receiver->OtherflushTotal.indexOf("," , preTemp+1);  //
+  int preHumidity = receiver->OtherflushTotal.indexOf("," , prePressure+1);  //
+  int preAltAltitude = receiver->OtherflushTotal.indexOf("," , preHumidity+1); //
+  int prePitot = receiver->OtherflushTotal.indexOf("," , preAltAltitude+1);  //
+  int postPitot = receiver->OtherflushTotal.indexOf("--");                   //
 
   Serial.println(pretimeadd);
   Serial.println(preElev);
@@ -1494,7 +1542,7 @@ void loop() {
   xbeeReceive_sense_1(&xbeeReceivePT_1);
   xbeeDecomp_sense_1(&xbeeDecompPT_1);
   xbeeDecode_sense_1(&xbeeDecodePT_1);
-  classifyStuff_sense_1(&classifyPT_1);
+  //classifyStuff_sense_1(&classifyPT_1);
   //parseGPS_sense_1(&parseGPSPT_1);
   //parseOther_sense_1(&parseOtherPT_1);
   //updateHUD_sense_1(&updateHUDPT_1);
