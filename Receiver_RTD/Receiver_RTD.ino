@@ -86,7 +86,7 @@ static int decompress_sense(struct pt *pt){
 //*************************************************************************************************************
 static int classify_sense(struct pt *pt){
   PT_BEGIN(pt);
-  PT_WAIT_UNTIL(pt,activePackets_decompressed && !(classified[0] & classified[1] & classified[2]));
+  PT_WAIT_UNTIL(pt,activePackets_decompressed && !(classified[0] && classified[1] && classified[2]));
     classify();
   PT_END(pt);
 }

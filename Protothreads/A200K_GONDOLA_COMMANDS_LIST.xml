@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data>
+  <loop>false</loop>
+  <repeat_times>1</repeat_times>
+  <repeat_period>500</repeat_period>
+  <frames_list>
+    <frame name="A200K_CUTDOWN">
+      <payload>7E001017010013A200417E38C1FFFE02443504FE</payload>
+    </frame>
+    <frame name="A200K_CUTDOWN_CANCEL">
+      <payload>7E001017010013A200417E38C1FFFE02443505FD</payload>
+    </frame>
+  </frames_list>
+</data>
