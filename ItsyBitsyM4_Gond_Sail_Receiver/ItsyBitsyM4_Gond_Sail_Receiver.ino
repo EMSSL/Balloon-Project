@@ -23,8 +23,8 @@
 //*************************************************************************************************************
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 //
-//#define SENSORMODE_GONDOLA
-#define SENSORMODE_SAIL
+#define SENSORMODE_GONDOLA
+//#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
 
 
@@ -102,6 +102,32 @@
     #include <Adafruit_DotStar.h> // controls LED on ItsyBitsyM4 MCU
     //#include <Servo.h>            // controls rudder servo
          
+
+
+    // SETUP DOTSTAR STUFF, INCLUDING SPECIFIC COLORS FOR EACH CONFIG
+    #define NUMPIXELS 1             // There is only one pixel on the board
+    #define DATAPIN    8            //Use these pin definitions for the ItsyBitsy M4
+    #define CLOCKPIN   6            //
+    Adafruit_DotStar px(NUMPIXELS, DATAPIN, CLOCKPIN, DOTSTAR_BRG);
+    
+    #if defined(SENSORMODE_GONDOLA)
+      #define DOTSTAR_MODECOLOR_RED 0
+      #define DOTSTAR_MODECOLOR_GREEN 0
+      #define DOTSTAR_MODECOLOR_BLUE 100
+    #elif defined(SENSORMODE_SAIL)
+      #define DOTSTAR_MODECOLOR_RED 0
+      #define DOTSTAR_MODECOLOR_GREEN 100
+      #define DOTSTAR_MODECOLOR_BLUE 0
+    #endif
+    
+    #define dotStarUpdate_thresh 20 // update the color combo of the dotstar every 20 milliseconds
+    #define dotStarPostSetup_thresh 60000      // after 2 minutes of imu setup colors, revert to config-specific color
+    long dotStarUpdate_stamp;       // used to track updates
+    long dotStarSetup_stamp;               // used to track the period of setup
+    bool dotStarPostSetup = false;       // used to kill the post-setup protothread
+
+    
+    
     
     
     // sets up IMU addresses based on the sensormode defined (remote IMU is Add.A, on-board IMU is Add.B)
@@ -227,6 +253,9 @@
     static struct pt stringChopPT;
     static struct pt xbeeCommandPT;
     static struct pt rudderAnglePT;
+
+    static struct pt dotStarIMUsetupPT;
+    static struct pt dotStarPostSetupPT;
     
     #define imuThresh 20                    // time (ms) between each imu reading
     #define altThresh 1000                  // time (ms) between each altimeter reading
@@ -564,6 +593,47 @@
         xbee.command_receive_length = 0;
       PT_END(pt);
     }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD dotStarIMUsetup_sense
+    //*************************************************************************************************************
+    static int dotStarIMUsetup_sense(struct pt *pt){
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt, ((!dotStarPostSetup) && ((millis() - dotStarSetup_stamp) <= dotStarPostSetup_thresh) && (millis() - dotStarUpdate_stamp >= dotStarUpdate_thresh)));
+        
+        imu::Vector<3> BN_eul = IMU.getVector(Adafruit_BNO055::VECTOR_EULER); // get IMU euler angles
+        
+        uint32_t eulx =  100 * BN_eul.x();    //
+        uint32_t euly =  100 * BN_eul.y();    // turn the 0.00 - 360.00 readings into 0 to 36000 integers
+        uint32_t eulz =  100 * BN_eul.z();    //
+
+        eulx = map(eulx,0,36000,0,255);       // 
+        euly = map(euly,0,36000,0,255);       // map the integers to a 0 to 255 (uint8_t) value that can be accepted by the dotstar
+        eulz = map(eulz,0,36000,0,255);       //
+
+        px.setPixelColor(0, eulx, euly, eulz);  // Set the pixel colors
+        px.show();                              // Refresh strip
+
+        dotStarUpdate_stamp = millis();       // update the refresh timestamp so it'll re-trigger the protothread properly
+        
+      PT_END(pt);
+    }
+
+    //*************************************************************************************************************
+    //*******                                   PROTOTHREAD dotStarPostSetupPT_sense
+    //*************************************************************************************************************
+    static int dotStarPostSetupPT_sense(struct pt *pt){
+      PT_BEGIN(pt);
+      PT_WAIT_UNTIL(pt, (!dotStarPostSetup) && (millis() - dotStarSetup_stamp >= dotStarPostSetup_thresh));
+        
+        px.setPixelColor(0, DOTSTAR_MODECOLOR_GREEN, DOTSTAR_MODECOLOR_RED, DOTSTAR_MODECOLOR_BLUE); // Set the config-specific pixel colors
+        px.show();                              // Refresh strip
+
+        dotStarPostSetup = true;    // make sure the protothread never triggers again so its not eating up resources
+        
+      PT_END(pt);
+    }
+    
     
     ////*************************************************************************************************************
     ////*******                                   PROTOTHREAD rudderAngle_sense                                               // probably wrapped up into Rudder Class
@@ -1723,6 +1793,11 @@
     //*************************************************************************************************************
     void setup() {
       wdt_disable(); // this prevents infinite loops from occuring with the watchdog reset                            // watchdog
+      
+      px.begin(); // Initialize pins for output
+      px.setPixelColor(0, DOTSTAR_MODECOLOR_GREEN, DOTSTAR_MODECOLOR_RED, DOTSTAR_MODECOLOR_BLUE); // Set the config-specific pixel colors
+      px.show();  // apply to dotstar
+      
       delay(5000);    // used to read setup debug code
         //calculates maximum string memory usage, and if it will fit on the arduino, reserves the memory 
        //this prevents "foaming" of the heap memory due to fragmentation, and helps to prevent stack overflow 
@@ -1833,13 +1908,19 @@
       PT_INIT(&stringGrabOtherPT);  //
       PT_INIT(&stringChopPT);       //
       PT_INIT(&xbeeCommandPT);      //
+      PT_INIT(&dotStarIMUsetupPT);  //
+      PT_INIT(&dotStarPostSetupPT); //
+      
       //PT_INIT(&rudderAnglePT);      // not implemented yet, used with Rudder Class
     
       usb.println(F("Setup complete, entering loop!"));
     
       getAltimeter();               // grabs the first elevation value, otherwise there will be two minutes of zeros
       gps_GetAlt("");               // for the altitude, even though the altimeter data is ready immediately
-      wdt_enable(16384); 
+      dotStarSetup_stamp = millis();
+      dotStarUpdate_stamp = millis();
+      
+      wdt_enable(16384);            // enable the watchdog timer
     }
     
     //*************************************************************************************************************
@@ -1898,6 +1979,9 @@
       GPSwrite_sense(&GPSwritePT);
     //  usb.print(F("13,"));
     //  usb.println(freeMemory());
+      dotStarIMUsetup_sense(&dotStarIMUsetupPT);
+
+      dotStarPostSetupPT_sense(&dotStarPostSetupPT);
     
       #ifdef SENSORMODE_GONDOLA
       
