@@ -83,7 +83,7 @@ int makeFiles(){
   
   strcpy(otherdatafile, "AODATA05.TXT");    // set the string name to the pointer
   
-  //usb.println(F("made it through filename initialization stuffs"));                                                                                   
+  usb.println(F("made it through filename initialization stuffs"));                                                                                   
                                             //
   for(uint8_t i = 0; i < 100; i++)          // for the gps file 
   {                                         // for all numbers from 0 to 100
@@ -95,7 +95,7 @@ int makeFiles(){
     }                                       //
   }                                         // otherwise, loop back again because you cannot overwrite files
   
-  //usb.println(F("made it through otherdatafile suffix search"));
+  usb.println(F("made it through otherdatafile suffix search"));
                                             //
                                             //        
   OtherData = SD.open(otherdatafile, FILE_WRITE); // write a new file for the gps file on the SD card
@@ -106,11 +106,11 @@ int makeFiles(){
     rtn = false;                                // set the boolean flag rtn to false
   }                                             //
   else{
-    //usb.println(F("made it through otherdata file creation")); 
+    usb.println(F("made it through otherdata file creation")); 
   }
-  //usb.println(F("returning rtn"));
-  //usb.println(rtn); 
-  //usb.println(F("leaving makeFiles()"));                                        
+  usb.println(F("returning rtn"));
+  usb.println(rtn); 
+  usb.println(F("leaving makeFiles()"));                                        
   return (int)rtn; 
 }
 
@@ -136,12 +136,18 @@ void setup() {
   
   delay(250);                   // allows time for the pin operations and sensors to come up 
 
-  if(!SD.begin(SD_CS)){         // initializes the SD card
-    usb.println(F("SD Card failed to initialize!")); // if the SD card fails, set sdError true and tell someone
-    sdError = true;
-    fatalError = true;
-  }                                 
-  else if(!makeFiles()){        // initializes the SD files
+  while(!SD.begin(SD_CS))
+  {
+    usb.println(F("startSD"));
+    delay(10);
+  }
+//  if(!SD.begin(SD_CS)){         // initializes the SD card
+//    usb.println(F("SD Card failed to initialize!")); // if the SD card fails, set sdError true and tell someone
+//    sdError = true;
+//    fatalError = true;
+//  }                                 
+//  else 
+  if(!makeFiles()){        // initializes the SD files
     usb.println(F("File Initialization Failed!")); // if makeFiles fails, set makeFileError to true and tell someone
     makeFileError = true;
     fatalError = true;
