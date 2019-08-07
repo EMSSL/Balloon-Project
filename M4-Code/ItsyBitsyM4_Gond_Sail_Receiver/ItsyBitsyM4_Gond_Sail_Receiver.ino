@@ -23,8 +23,8 @@
 //*************************************************************************************************************
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 //
-//#define SENSORMODE_GONDOLA
-#define SENSORMODE_SAIL
+#define SENSORMODE_GONDOLA
+//#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
 
 //************  NO TOUCHY BELOW UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
