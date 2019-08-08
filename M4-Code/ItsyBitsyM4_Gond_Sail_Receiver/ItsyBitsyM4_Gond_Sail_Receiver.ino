@@ -1,7 +1,7 @@
  /*
  * BALLOON PROJECT 
  * 
- * Author :          Gerrit Motes 6/19
+ * Author :          Gerrit Motes 8/8/19
  * Special Contrib:  MakeFiles by Rodney Metoyer in The BeforeTime, in The LongLongAgo...
  * 
  * Equipment integrated into this build:
@@ -23,8 +23,8 @@
 //*************************************************************************************************************
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 //
-#define SENSORMODE_GONDOLA
-//#define SENSORMODE_SAIL
+//#define SENSORMODE_GONDOLA
+#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
 
 //************  NO TOUCHY BELOW UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
