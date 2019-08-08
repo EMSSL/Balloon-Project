@@ -63,10 +63,10 @@
 // UNCOMMENT IF USING, COMMENT OUT IF NOT USING IN THIS BOX
 
 #define TESTING_IMU               //    
-//#define TESTING_ALT               //
-//#define TESTING_ADC               //  WHICH SENSORS ARE YOU TESTING
-//#define TESTING_GPS               //
-//#define TESTING_SD                //
+#define TESTING_ALT               //
+#define TESTING_ADC               //  WHICH SENSORS ARE YOU TESTING
+#define TESTING_GPS               //
+#define TESTING_SD                //
 
 //*************************************************************************************************************
 //                                                  END

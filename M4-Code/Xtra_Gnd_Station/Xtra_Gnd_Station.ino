@@ -1,7 +1,7 @@
  /*
  * BALLOON PROJECT 
  * 
- * Author :          Gerrit Motes 8/8/19
+ * Author :          Gerrit Motes 6/19
  * Special Contrib:  MakeFiles by Rodney Metoyer in The BeforeTime, in The LongLongAgo...
  * 
  * Equipment integrated into this build:
@@ -1852,16 +1852,16 @@
     
       delay(250);                   // allows time for the pin operations and sensors to come up 
     
-      long xbeeTime = millis();
-      while(XB1_NP != 256 && (millis() - xbeeTime <= 5000))
-      {
-        XB1_NP = xbee.begin();
-      }
-      // include any other xbee begin cycles here
-      if(XB1_NP == 256 /*&& XB2_NP == 256, etc. */)
-      {
-        setupXbee(); // include all setup features in this fucntion (above)
-      }
+//      long xbeeTime = millis();
+//      while(XB1_NP != 256 && (millis() - xbeeTime <= 5000))
+//      {
+//        XB1_NP = xbee.begin();
+//      }
+//      // include any other xbee begin cycles here
+//      if(XB1_NP == 256 /*&& XB2_NP == 256, etc. */)
+//      {
+//        setupXbee(); // include all setup features in this fucntion (above)
+//      }
       if(!SD.begin(SD_CS)){         // initializes the SD card
         usb.println(F("SD Card failed to initialize!")); // if the SD card fails, set sdError true and tell someone
         sdError = true;
@@ -1945,13 +1945,13 @@
     //*******                                           LOOP
     //*************************************************************************************************************
     void loop() {
-      xbeeCommand_sense(&xbeeCommandPT);
+      //xbeeCommand_sense(&xbeeCommandPT);
       
-      stringGrabInit_sense(&stringGrabInitPT);
+      //stringGrabInit_sense(&stringGrabInitPT);
       
-      stringChop_sense(&stringChopPT);
+      //stringChop_sense(&stringChopPT);
       
-      xbee.protothreadLoop(); // enable watchdog timer
+      //xbee.protothreadLoop(); // enable watchdog timer
     //  usb.print(F("1,"));
     //  usb.println(freeMemory());
 
