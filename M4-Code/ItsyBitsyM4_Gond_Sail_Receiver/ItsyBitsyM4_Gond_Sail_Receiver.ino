@@ -23,8 +23,8 @@
 //*************************************************************************************************************
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 //
-//#define SENSORMODE_GONDOLA
-#define SENSORMODE_SAIL
+#define SENSORMODE_GONDOLA
+//#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
 
 //************  NO TOUCHY BELOW UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
@@ -206,7 +206,7 @@
     Adafruit_BME280 ALT;          //  ALT I2C
     #define altPower 11           //altimeter power transistor pin
     #define altitudeThresh (2000)   // threshold altitude for cutdown timer initiation
-    #define gndlvlPress 1023.4   // ground level pressure for calculating elevation  
+    #define gndlvlPress 1012.4   // ground level pressure for calculating elevation  
                                   //  (in mbar, even though the pressure output is in different units ¯\_(ツ)_/¯ )
     
     uint8_t stringGrab_initial[700];    // char array for uncompressed stringGrab data
