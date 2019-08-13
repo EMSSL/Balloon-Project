@@ -1,0 +1,658 @@
+\hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino}{}\doxysection{Itsy\+Bitsy\+M4\+\_\+\+Gond\+\_\+\+Sail\+\_\+\+Receiver.\+ino File Reference}
+\label{_itsy_bitsy_m4___gond___sail___receiver_8ino}\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+
+
+E\+M\+S\+SL Balloon Project Telemetry Middleware.  
+
+
+{\ttfamily \#include $<$Wire.\+h$>$}\newline
+{\ttfamily \#include $<$S\+P\+I.\+h$>$}\newline
+{\ttfamily \#include $<$pt.\+h$>$}\newline
+{\ttfamily \#include $<$S\+D.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+Sensor.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+G\+P\+S.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+B\+N\+O055.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+B\+M\+E280.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+A\+D\+S1015.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}xbee\+A\+P\+I.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+Dot\+Star.\+h$>$}\newline
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_adb011fa6ea998863169b38db055b3046}{S\+E\+N\+S\+O\+R\+M\+O\+D\+E\+\_\+\+G\+O\+N\+D\+O\+LA}}
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a90c9494ffda39e7f2e6dc89314f3d5e5}{X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+A\+D\+D\+R\+\_\+\+D\+E\+F\+A\+U\+LT}}
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa6dee8927a76abfe8bd3fe55cea8065e}{X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+A\+D\+DR}}~(0x0013\+A200417\+E3829)
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a733f7d5b0fd44b87044a3fc9d4594ceb}{N\+U\+M\+P\+I\+X\+E\+LS}}~1
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a08685c1b3583762920c614f2aaecae19}{D\+A\+T\+A\+P\+IN}}~8
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d469462e83f0b22e224e350112fcf3a}{C\+L\+O\+C\+K\+P\+IN}}~6
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa8d9248c857550ee6d7fb4f8c97e2724}{D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+O\+R\+\_\+\+R\+ED}}~0
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a32a1afddc4414e6b54769041cd094933}{D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+O\+R\+\_\+\+G\+R\+E\+EN}}~0
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6efcb5d4fcf1a5b6135eafa63e4d3b55}{D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+O\+R\+\_\+\+B\+L\+UE}}~100
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a97d22e7f3c658ac91c5cddab6194da8e}{dot\+Star\+Update\+\_\+thresh}}~20
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_ada6f4a34ae01f08489655a9d9594b486}{dot\+Star\+Post\+Setup\+\_\+thresh}}~60000
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a44b8fdfd19b8480719efc0c50f315f68}{imu\+Power}}~12
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a55319a97d01bdc1aec67578a00a99273}{usb}}~Serial
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_afd0b8f6df1e7d23c52ba35af7126fc9c}{gps}}~Serial1
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7507a06d23d8c7b9a7dbe15ac2523ed2}{X\+B1\+\_\+\+SS}}~(5)
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a288169acace36670ae529e046fe4dad0}{X\+B1\+\_\+\+A\+T\+TN}}~(7)
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7f1cc9ebc555801c37006048ec9dd356}{X\+B1\+\_\+\+C\+MD}}~(9)
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a21419217f9857630a6231835ade5a7de}{X\+B1\+\_\+\+L\+O\+C\+\_\+\+C\+O\+M\+M\+A\+N\+D\+\_\+\+D\+IO}}~(\textquotesingle{}0\textquotesingle{})
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab215e4dfddd0dddd2ef0929dc59f5d74}{X\+B1\+\_\+\+L\+O\+C\+\_\+\+C\+U\+T\+D\+O\+W\+N\+\_\+\+D\+IO}}~(\textquotesingle{}5\textquotesingle{})
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5597a0bd0dee1087d4bcdc248261ca72}{X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+C\+O\+M\+M\+A\+N\+D\+\_\+\+D\+IO}}~(\textquotesingle{}0\textquotesingle{})
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab22e4553ba5b13b1e03f35b653347616}{X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+C\+U\+T\+D\+O\+W\+N\+\_\+\+D\+IO}}~(\textquotesingle{}5\textquotesingle{})
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3baddeaf71875b9be12412b9e74734f9}{X\+B1\+\_\+\+S\+P\+I\+\_\+\+C\+LK}}~(3000000)
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad9d99f3a9a671f3f2587f77c807ba367}{X\+B1\+\_\+\+P\+R\+I\+M\+A\+R\+Y\+\_\+\+M\+O\+DE}}~(1)
+\item 
+\#define \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_af42353cf260a458f10019484ab9be598}{X\+B1\+\_\+\+M\+A\+X\+\_\+\+P\+A\+Y\+L\+O\+A\+D\+\_\+\+S\+I\+ZE}}~256
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7e2d8ef8f0724f23ce84b1e7d0c171d9}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7e2d8ef8f0724f23ce84b1e7d0c171d9}} 
+\#define {\bfseries S\+D\+\_\+\+CS}~2
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6d429a2917f1311597cbb7ef3484a84c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6d429a2917f1311597cbb7ef3484a84c}} 
+\#define {\bfseries sd\+Power}~3
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a47dfcdafd87cb190864bc7698ab5692c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a47dfcdafd87cb190864bc7698ab5692c}} 
+\#define {\bfseries alt\+Power}~11
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a1945152b4d1c6bca694d486cb97332c1}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a1945152b4d1c6bca694d486cb97332c1}} 
+\#define {\bfseries altitude\+Thresh}~(2000)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d5f2504c4c9d296358f9ce6f7bef567}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d5f2504c4c9d296358f9ce6f7bef567}} 
+\#define {\bfseries gndlvl\+Press}~1012.\+4
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a462981bceb6ab695a67f1a0a6f53c964}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a462981bceb6ab695a67f1a0a6f53c964}} 
+\#define {\bfseries imu\+Thresh}~20
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a760f433fcd574fcff99867bb2559c261}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a760f433fcd574fcff99867bb2559c261}} 
+\#define {\bfseries alt\+Thresh}~1000
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad15874d6e8122b73310a2f64a13237e5}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad15874d6e8122b73310a2f64a13237e5}} 
+\#define {\bfseries pitot\+Read\+Thresh}~2
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2b4267ebb28175c56ef3b32f0a6f0bd0}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2b4267ebb28175c56ef3b32f0a6f0bd0}} 
+\#define {\bfseries write\+Thresh}~2
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a64d5ed76daae4cc9cd2af23cee4da1c5}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a64d5ed76daae4cc9cd2af23cee4da1c5}} 
+\#define {\bfseries gps\+Write\+Thresh}~5
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a16a4656b03740878ecb5a8868dbd526c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a16a4656b03740878ecb5a8868dbd526c}} 
+\#define {\bfseries cutdown\+Thresh}~120000
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6fd01e2538ce2822c6febaee2138ca56}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6fd01e2538ce2822c6febaee2138ca56}} 
+\#define {\bfseries get\+I\+M\+Ustatus\+Thresh}~180000
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aefb0f8b0c794d845687cb4fe614e1989}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aefb0f8b0c794d845687cb4fe614e1989}} 
+\#define {\bfseries error\+Val1}~(long)0.\+00
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa619bccc08421d53714a5511ce9e4640}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa619bccc08421d53714a5511ce9e4640}} 
+\#define {\bfseries error\+Val2}~(long)-\/0.\+01
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_add5dc45df2caf8170b1acd6135bbcd9f}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_add5dc45df2caf8170b1acd6135bbcd9f}} 
+\#define {\bfseries error\+Val3}~(long)-\/0.\+06
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a034a2df347fcc38f3d9b427e921bb2ed}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a034a2df347fcc38f3d9b427e921bb2ed}} 
+\#define {\bfseries gps\+\_\+get\+Time\+Thresh}~60000
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a45a3d80f9eb3701e33ca471393d1fb1f}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a45a3d80f9eb3701e33ca471393d1fb1f}} 
+\#define {\bfseries string\+Grab\+\_\+thresh}~1000
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a32cca5214b0b2c9576028061df292f2f}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a32cca5214b0b2c9576028061df292f2f}} 
+\#define {\bfseries rudder\+Angle\+\_\+thresh}~5000
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Adafruit\+\_\+\+Dot\+Star \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_af5c084883d926ee301179832f5c9dab1}{px}} (\mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a733f7d5b0fd44b87044a3fc9d4594ceb}{N\+U\+M\+P\+I\+X\+E\+LS}}, \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a08685c1b3583762920c614f2aaecae19}{D\+A\+T\+A\+P\+IN}}, \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d469462e83f0b22e224e350112fcf3a}{C\+L\+O\+C\+K\+P\+IN}}, D\+O\+T\+S\+T\+A\+R\+\_\+\+B\+RG)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a754d3abd9597e517b16306ed62bcea58}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a754d3abd9597e517b16306ed62bcea58}} 
+void {\bfseries use\+Interrupt} (boolean)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae3f20a5a4f45810cd3223e55574a3bae}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae3f20a5a4f45810cd3223e55574a3bae}} 
+void {\bfseries get\+G\+PS} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aaef0a5fdfef99a606dbaf80df9306a43}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aaef0a5fdfef99a606dbaf80df9306a43}} 
+void {\bfseries get\+I\+MU} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aeb91bf506c0ab1c2a728f08984093f0b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aeb91bf506c0ab1c2a728f08984093f0b}} 
+void {\bfseries get\+I\+M\+Ustatus} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a894c52807b39f08791fb3ed6f99dae0c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a894c52807b39f08791fb3ed6f99dae0c}} 
+void {\bfseries get\+Altimeter} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a387e48d590bd6330172edf869cb0cb25}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a387e48d590bd6330172edf869cb0cb25}} 
+void {\bfseries write2\+SD} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a299d833fd7f7819c22aa66e77716b7c2}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a299d833fd7f7819c22aa66e77716b7c2}} 
+void {\bfseries G\+P\+Swrite2\+SD} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a1f330d8767006227db60f21798a9cd44}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a1f330d8767006227db60f21798a9cd44}} 
+void {\bfseries fix\+Errors} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac8896242425b6577cb926a826ff5b52b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac8896242425b6577cb926a826ff5b52b}} 
+void {\bfseries fatal\+Error\+Fix} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac4dc97ad67f7b5215d684e932e36d4c3}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac4dc97ad67f7b5215d684e932e36d4c3}} 
+bool {\bfseries gps\+\_\+\+Get\+Time} (String N\+M\+E\+A\+\_\+\+Sentence)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab88bd5892f65c543528007780634a69b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab88bd5892f65c543528007780634a69b}} 
+void {\bfseries gps\+\_\+\+Get\+Alt} (String N\+M\+E\+A\+\_\+\+Sentence)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6231028b332bace2ec25fbcde9446f87}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6231028b332bace2ec25fbcde9446f87}} 
+void {\bfseries sd\+Fix} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aefc5d5069219bdc4310cafdae9f849e6}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aefc5d5069219bdc4310cafdae9f849e6}} 
+void {\bfseries file\+Fix} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab1cad129f7a1b74e89926a01d912edb0}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab1cad129f7a1b74e89926a01d912edb0}} 
+void {\bfseries gps\+Fix} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac3fb35532251189c351fce19e794d8f1}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac3fb35532251189c351fce19e794d8f1}} 
+void {\bfseries imu\+Fix} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a48dffabe5e4c3c98b22e0bf2f1bb586e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a48dffabe5e4c3c98b22e0bf2f1bb586e}} 
+void {\bfseries alt\+Fix} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a68591e08e38b0ccd52c9ddc53219613a}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a68591e08e38b0ccd52c9ddc53219613a}} 
+uint16\+\_\+t {\bfseries string\+Grab} (String input\+\_\+string)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae6cc664507047854b9e136b812ff7181}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae6cc664507047854b9e136b812ff7181}} 
+void {\bfseries string\+Chop} (uint8\+\_\+t payload\mbox{[}$\,$\mbox{]}, uint16\+\_\+t payload\+\_\+size)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac56bd91d74a9bf266837073a77941ca5}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac56bd91d74a9bf266837073a77941ca5}} 
+void {\bfseries command\+Parse} (uint8\+\_\+t cmd\+\_\+buffer\mbox{[}$\,$\mbox{]}, int buffer\+\_\+size)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa76bb42f8673492b8dbd9f698a26bc2a}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa76bb42f8673492b8dbd9f698a26bc2a}} 
+void {\bfseries get\+System\+Stats} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a31f5e7f27971e4545f2640105a0f5a84}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a31f5e7f27971e4545f2640105a0f5a84}} 
+void {\bfseries parse\+\_\+system\+Stats} (uint8\+\_\+t sys\+\_\+stat)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a401f0cb49082147e68fc51782afaaada}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a401f0cb49082147e68fc51782afaaada}} 
+void {\bfseries cutdown\+Func} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac7b58bc5521481efa29c71f98a6d5d2e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac7b58bc5521481efa29c71f98a6d5d2e}} 
+int {\bfseries make\+Files} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6745f86d1460523cfe60e6c4dd169448}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6745f86d1460523cfe60e6c4dd169448}} 
+void {\bfseries serial\+Event\+Run} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a9c499016171f3dd5dd69c89c7f49c238}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a9c499016171f3dd5dd69c89c7f49c238}} 
+uint16\+\_\+t {\bfseries decompress} (uint8\+\_\+t payload\+\_\+in\mbox{[}$\,$\mbox{]}, uint8\+\_\+t payload\+\_\+out\mbox{[}$\,$\mbox{]}, uint16\+\_\+t payload\+In\+\_\+size)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae1bddcf09a1960f8a094a7e1cbeae463}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae1bddcf09a1960f8a094a7e1cbeae463}} 
+uint16\+\_\+t {\bfseries double\+Stuff} (uint8\+\_\+t payload\+\_\+in\mbox{[}$\,$\mbox{]}, uint8\+\_\+t payload\+\_\+out\mbox{[}$\,$\mbox{]}, uint16\+\_\+t payload\+In\+\_\+size)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_acf32c0d2ab492037047700d86bb5d205}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_acf32c0d2ab492037047700d86bb5d205}} 
+void {\bfseries match\+Case\+Compress} (uint8\+\_\+t payload\mbox{[}$\,$\mbox{]}, uint16\+\_\+t payloadsize)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac4aea29e72d69190efce13a1457d2021}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac4aea29e72d69190efce13a1457d2021}} 
+void {\bfseries match\+Case\+Decompress} (uint8\+\_\+t payload\mbox{[}$\,$\mbox{]}, uint16\+\_\+t payloadsize)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8d862dc01c44bfabc8d952bb77f8da89}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8d862dc01c44bfabc8d952bb77f8da89}} 
+int {\bfseries free\+Memory} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0ced68a5cfce347ad99b056d2bc6d5c2}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0ced68a5cfce347ad99b056d2bc6d5c2}} 
+bool {\bfseries wdt\+\_\+enable} (int period\+Cyc)
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae0358d8375a88824eaced4f265933737}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae0358d8375a88824eaced4f265933737}} 
+void {\bfseries wdt\+\_\+disable} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_adf53919c0d1b9fd117e33658fcb11e81}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_adf53919c0d1b9fd117e33658fcb11e81}} 
+void {\bfseries wdt\+\_\+reset} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a9ced709b48c84647fa20a20eb96c2268}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a9ced709b48c84647fa20a20eb96c2268}} 
+void {\bfseries setup\+Xbee} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a4fc01d736fe50cf5b977f755b675f11d}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a4fc01d736fe50cf5b977f755b675f11d}} 
+void {\bfseries setup} ()
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_afe461d27b9c48d5921c00d521181f12f}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_afe461d27b9c48d5921c00d521181f12f}} 
+void {\bfseries loop} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+long \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a06fc1bd9d15645a3193e6f6ee1823604}{dot\+Star\+Update\+\_\+stamp}}
+\item 
+long \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_acc0df85d221974db3623214fbad16033}{dot\+Star\+Setup\+\_\+stamp}}
+\item 
+bool \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae5851abbc81ce981b27ec117608497d8}{dot\+Star\+Post\+Setup}} = false
+\item 
+Adafruit\+\_\+\+B\+N\+O055 \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a826768f545ad9326bea4abd724ef6609}{I\+MU}} = Adafruit\+\_\+\+B\+N\+O055(55,B\+N\+O055\+\_\+\+A\+D\+D\+R\+E\+S\+S\+\_\+B)
+\item 
+Xbee \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3b7a76322754b62db89459f61f8cd82d}{xbee}} = Xbee(\mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7507a06d23d8c7b9a7dbe15ac2523ed2}{X\+B1\+\_\+\+SS}}, \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a288169acace36670ae529e046fe4dad0}{X\+B1\+\_\+\+A\+T\+TN}})
+\item 
+uint16\+\_\+t \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_afafbfd91b6f7d4c297b4d3ee65681b4c}{X\+B1\+\_\+\+NP}}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8c57cc736153b80b6d982418dd29ec68}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8c57cc736153b80b6d982418dd29ec68}} 
+bool {\bfseries string\+Grab\+\_\+init} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a89763f31a2407adf575bfb6a87e43c7b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a89763f31a2407adf575bfb6a87e43c7b}} 
+bool {\bfseries string\+Grab\+\_\+gps} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa451dacc941278186e042e9965e63bdc}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa451dacc941278186e042e9965e63bdc}} 
+bool {\bfseries string\+Grab\+\_\+other} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a28ec2db1d5bdfcbc658d5f79822c9d72}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a28ec2db1d5bdfcbc658d5f79822c9d72}} 
+uint8\+\_\+t {\bfseries system\+\_\+status}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7bcb6a90b6cf3d6d5759698396572886}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7bcb6a90b6cf3d6d5759698396572886}} 
+uint8\+\_\+t {\bfseries self\+\_\+test\+\_\+results}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a683ed138936446fa48be5880d1a34d46}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a683ed138936446fa48be5880d1a34d46}} 
+uint8\+\_\+t {\bfseries system\+\_\+error}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a951ac31de71c2bf701a13e5f233fc6d8}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a951ac31de71c2bf701a13e5f233fc6d8}} 
+Adafruit\+\_\+\+A\+D\+S1115 {\bfseries ads}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a41c85c6c939de85b3b1609ba70a5dd31}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a41c85c6c939de85b3b1609ba70a5dd31}} 
+float {\bfseries pitot\+Read\+Total} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aeb2f8b0fba9aa0c4685f72738c268dd8}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aeb2f8b0fba9aa0c4685f72738c268dd8}} 
+float {\bfseries pitot} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a24d61a35b72d7299eb6b5f48e71a571b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a24d61a35b72d7299eb6b5f48e71a571b}} 
+float {\bfseries temp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac870e1249bab4a2a68cc4126761d24ef}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac870e1249bab4a2a68cc4126761d24ef}} 
+float {\bfseries pressure} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a151b2dd9de34d0a3067c922c243135c6}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a151b2dd9de34d0a3067c922c243135c6}} 
+float {\bfseries humid} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3150cda3890675aff2bc6c64f597dde9}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3150cda3890675aff2bc6c64f597dde9}} 
+float {\bfseries alt\+Altitude} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_adac6042b6e5b669b7a0683193d646251}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_adac6042b6e5b669b7a0683193d646251}} 
+Adafruit\+\_\+\+B\+M\+E280 {\bfseries A\+LT}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5ee660acb7a5628d66e274ee4d8db609}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5ee660acb7a5628d66e274ee4d8db609}} 
+uint8\+\_\+t {\bfseries string\+Grab\+\_\+initial} \mbox{[}700\mbox{]}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a9cccf9792fe9f44ceaa64ed2bd70aa7e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a9cccf9792fe9f44ceaa64ed2bd70aa7e}} 
+uint8\+\_\+t {\bfseries string\+Grab\+\_\+compressed} \mbox{[}700\mbox{]}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5e9be5ffa420019b79ccdc8ca1826756}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5e9be5ffa420019b79ccdc8ca1826756}} 
+uint8\+\_\+t {\bfseries string\+Chop\+\_\+payload} \mbox{[}256\mbox{]}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aea589295192f6c3c0f28ce58e7876cdf}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aea589295192f6c3c0f28ce58e7876cdf}} 
+uint16\+\_\+t {\bfseries compressed\+\_\+size}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a27a085f1712451e5285c664cdee3c172}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a27a085f1712451e5285c664cdee3c172}} 
+uint32\+\_\+t {\bfseries packet\+Num} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d578c1202a1d7869cb50eda93545047}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d578c1202a1d7869cb50eda93545047}} 
+String {\bfseries Otherflush\+Total} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a49f9cba61117124faf4f801f064cab43}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a49f9cba61117124faf4f801f064cab43}} 
+String {\bfseries G\+P\+Sflush\+Total} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0d437c0e6b088c8249e8fc523b84a03f}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0d437c0e6b088c8249e8fc523b84a03f}} 
+String {\bfseries gps\+Stuff} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_afa01e459ab85d699760df426e6317a7e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_afa01e459ab85d699760df426e6317a7e}} 
+String {\bfseries gps\+Time} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2009728973f66b0a5e82acbb89058bac}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2009728973f66b0a5e82acbb89058bac}} 
+String {\bfseries string\+Grab\+\_\+temp} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0442653b1bd46be907ba38e316c27791}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0442653b1bd46be907ba38e316c27791}} 
+File {\bfseries Other\+Data}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aeae894d76ee26bb24c0961def82625b0}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aeae894d76ee26bb24c0961def82625b0}} 
+File {\bfseries G\+P\+Sdata}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6eea268f79912446e3fa269c256ef025}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6eea268f79912446e3fa269c256ef025}} 
+Adafruit\+\_\+\+G\+PS G\+PS \& {\bfseries gps}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aff2883e8ec712eae433249c05acc02d7}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aff2883e8ec712eae433249c05acc02d7}} 
+boolean {\bfseries using\+Interrupt}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a02ffdeaf3e76884062132ac76274ca2e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a02ffdeaf3e76884062132ac76274ca2e}} 
+bool {\bfseries is\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a82cfa51d3116c799997732b5296445d3}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a82cfa51d3116c799997732b5296445d3}} 
+bool {\bfseries sd\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a274b43d22222b4d8cfd7236aebbbaaaf}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a274b43d22222b4d8cfd7236aebbbaaaf}} 
+bool {\bfseries make\+File\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_adc6a08d1c4611535bc9527c8e2d4f75c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_adc6a08d1c4611535bc9527c8e2d4f75c}} 
+bool {\bfseries gps\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae25813206a727248079b8022a3932c5b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae25813206a727248079b8022a3932c5b}} 
+bool {\bfseries imu\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_af9fc12cbf8888b8b46480d68ff00227c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_af9fc12cbf8888b8b46480d68ff00227c}} 
+long {\bfseries imu\+Err\+Chk1} = 1
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3ac3464dbe382939b7f000f0f5f630c3}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3ac3464dbe382939b7f000f0f5f630c3}} 
+long {\bfseries imu\+Err\+Chk2} = 1
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aed91cb4b66f3fdaba33f96e68af4030b}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aed91cb4b66f3fdaba33f96e68af4030b}} 
+bool {\bfseries alt\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a65b7cfe1f393dfd4f1fa655c6b506db1}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a65b7cfe1f393dfd4f1fa655c6b506db1}} 
+bool {\bfseries fatal\+Error} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a085ecf6d4582f4254e53fe8d130c86f2}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a085ecf6d4582f4254e53fe8d130c86f2}} 
+bool {\bfseries cutdown} = false
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a141b5b72bb84c6262c6736a08e7981b9}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a141b5b72bb84c6262c6736a08e7981b9}} 
+long {\bfseries imu\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8f80676a0e569f86ce52c11a5fc6203e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8f80676a0e569f86ce52c11a5fc6203e}} 
+long {\bfseries imu\+Status\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6c8403059c9175878515ff6156e03138}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6c8403059c9175878515ff6156e03138}} 
+long {\bfseries alt\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a75e6d25b81df24f58fafa696d1833cee}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a75e6d25b81df24f58fafa696d1833cee}} 
+long {\bfseries pitot\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2bbf5847a686ed404ad1b3f0dde93fa6}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2bbf5847a686ed404ad1b3f0dde93fa6}} 
+long {\bfseries cutdown\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a1570ab3dba6cf71fccf67cef6d1da3d3}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a1570ab3dba6cf71fccf67cef6d1da3d3}} 
+long {\bfseries error\+Fix\+\_\+\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_acc2c364d8f672214841288412403b779}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_acc2c364d8f672214841288412403b779}} 
+long {\bfseries gps\+Time\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7418dc398a0417a068bb4330f42fc564}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7418dc398a0417a068bb4330f42fc564}} 
+long {\bfseries gps\+\_\+get\+Time\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a4dcb5334a01deabe10ca92975dbd9cb6}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a4dcb5334a01deabe10ca92975dbd9cb6}} 
+long {\bfseries string\+Grab\+\_\+stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aea01fc95f7e3e70a6610eaa681de945a}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aea01fc95f7e3e70a6610eaa681de945a}} 
+long {\bfseries rudder\+Angle\+\_\+stamp} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8b3e87481aaae107ed72a950cd4a9dda}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a8b3e87481aaae107ed72a950cd4a9dda}} 
+uint8\+\_\+t {\bfseries write\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac29b14803acec0f696b6ed51c1e227a3}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ac29b14803acec0f696b6ed51c1e227a3}} 
+uint8\+\_\+t {\bfseries G\+P\+Swrite\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_abc02c5b80c2b1c8fcf5cdc42b6923937}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_abc02c5b80c2b1c8fcf5cdc42b6923937}} 
+uint8\+\_\+t {\bfseries gps\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a75362d5e8b14f3abf9d3de7ce8341290}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a75362d5e8b14f3abf9d3de7ce8341290}} 
+uint8\+\_\+t {\bfseries fatal\+Reset\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2efb1bc52eeef49ff4e5298bd8aa3887}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a2efb1bc52eeef49ff4e5298bd8aa3887}} 
+uint8\+\_\+t {\bfseries imu\+Reset\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a757dee9ded493b952e6e457ec8e798f7}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a757dee9ded493b952e6e457ec8e798f7}} 
+uint8\+\_\+t {\bfseries alt\+Reset\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7e0966f4cf17f776da33b875a3e8a3e9}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7e0966f4cf17f776da33b875a3e8a3e9}} 
+uint8\+\_\+t {\bfseries pitot\+Count} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0e13a4b4ae0cefdac2a413284239caa6}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a0e13a4b4ae0cefdac2a413284239caa6}} 
+float {\bfseries altitude} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a4e2371557bcb31b981209dd3b4efb11f}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a4e2371557bcb31b981209dd3b4efb11f}} 
+float {\bfseries rudder\+Angle\+\_\+actual}
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3ba7df41970840cef5d8979df17a5333}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3ba7df41970840cef5d8979df17a5333}} 
+float {\bfseries rudder\+Angle\+\_\+setpoint} = 0
+\item 
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad193a2cc121e0d4614a1c21eb463fb56}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad193a2cc121e0d4614a1c21eb463fb56}} 
+char $\ast$ {\bfseries \+\_\+\+\_\+brkval}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+E\+M\+S\+SL Balloon Project Telemetry Middleware. 
+
+\begin{DoxyAuthor}{Author}
+Gerrit Motes 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+August 8 2019 
+\end{DoxyDate}
+\begin{DoxyVersion}{Version}
+1.\+0
+\end{DoxyVersion}
+Middleware for the Itsy\+Bitsy M4 express microcontroller.
+
+Equipment integrated into this build\+:
+\begin{DoxyItemize}
+\item Adafruit B\+N\+O055 9D\+OF I\+MU
+\item Adafruit B\+M\+E280 Altimeter
+\item Adafruit Ultimate G\+PS breakout
+\item Adafruit micro\+SD reader/writeer breakout
+\item Hobbyking small pitotstatic tube with an Adafruit A\+D\+S115 A\+DC
+\item Digi Intl. Xbee 900HP S3B radio / sparkfun xplorer regulated 
+\end{DoxyItemize}
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d469462e83f0b22e224e350112fcf3a}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d469462e83f0b22e224e350112fcf3a}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!CLOCKPIN@{CLOCKPIN}}
+\index{CLOCKPIN@{CLOCKPIN}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{CLOCKPIN}{CLOCKPIN}}
+{\footnotesize\ttfamily \#define C\+L\+O\+C\+K\+P\+IN~6}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR \+: clock pin (pin \# 6) \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a08685c1b3583762920c614f2aaecae19}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a08685c1b3583762920c614f2aaecae19}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!DATAPIN@{DATAPIN}}
+\index{DATAPIN@{DATAPIN}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{DATAPIN}{DATAPIN}}
+{\footnotesize\ttfamily \#define D\+A\+T\+A\+P\+IN~8}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR \+: data pin (pin \# 8) \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6efcb5d4fcf1a5b6135eafa63e4d3b55}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a6efcb5d4fcf1a5b6135eafa63e4d3b55}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!DOTSTAR\_MODECOLOR\_BLUE@{DOTSTAR\_MODECOLOR\_BLUE}}
+\index{DOTSTAR\_MODECOLOR\_BLUE@{DOTSTAR\_MODECOLOR\_BLUE}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{DOTSTAR\_MODECOLOR\_BLUE}{DOTSTAR\_MODECOLOR\_BLUE}}
+{\footnotesize\ttfamily \#define D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+O\+R\+\_\+\+B\+L\+UE~100}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR \+: the main mode indication lighting, blue component (0-\/255) \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a32a1afddc4414e6b54769041cd094933}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a32a1afddc4414e6b54769041cd094933}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!DOTSTAR\_MODECOLOR\_GREEN@{DOTSTAR\_MODECOLOR\_GREEN}}
+\index{DOTSTAR\_MODECOLOR\_GREEN@{DOTSTAR\_MODECOLOR\_GREEN}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{DOTSTAR\_MODECOLOR\_GREEN}{DOTSTAR\_MODECOLOR\_GREEN}}
+{\footnotesize\ttfamily \#define D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+O\+R\+\_\+\+G\+R\+E\+EN~0}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR \+: the main mode indication lighting, green component (0-\/255) \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa8d9248c857550ee6d7fb4f8c97e2724}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa8d9248c857550ee6d7fb4f8c97e2724}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!DOTSTAR\_MODECOLOR\_RED@{DOTSTAR\_MODECOLOR\_RED}}
+\index{DOTSTAR\_MODECOLOR\_RED@{DOTSTAR\_MODECOLOR\_RED}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{DOTSTAR\_MODECOLOR\_RED}{DOTSTAR\_MODECOLOR\_RED}}
+{\footnotesize\ttfamily \#define D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+O\+R\+\_\+\+R\+ED~0}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR \+: the main mode indication lighting, red component (0-\/255) \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ada6f4a34ae01f08489655a9d9594b486}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ada6f4a34ae01f08489655a9d9594b486}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!dotStarPostSetup\_thresh@{dotStarPostSetup\_thresh}}
+\index{dotStarPostSetup\_thresh@{dotStarPostSetup\_thresh}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{dotStarPostSetup\_thresh}{dotStarPostSetup\_thresh}}
+{\footnotesize\ttfamily \#define dot\+Star\+Post\+Setup\+\_\+thresh~60000}
+
+used by dot\+Star\+Post\+Setup\+\_\+sense to change the M4\textquotesingle{}s onboard dotstar back to its respective D\+O\+T\+S\+T\+A\+R\+\_\+\+M\+O\+D\+E\+C\+O\+L\+OR combo, which is determined by S\+E\+N\+S\+O\+R\+M\+O\+DE \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a97d22e7f3c658ac91c5cddab6194da8e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a97d22e7f3c658ac91c5cddab6194da8e}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!dotStarUpdate\_thresh@{dotStarUpdate\_thresh}}
+\index{dotStarUpdate\_thresh@{dotStarUpdate\_thresh}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{dotStarUpdate\_thresh}{dotStarUpdate\_thresh}}
+{\footnotesize\ttfamily \#define dot\+Star\+Update\+\_\+thresh~20}
+
+used by dot\+Star\+I\+M\+Usetup\+\_\+sense to update the M4\textquotesingle{}s onboard dotstar with I\+MU info \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_afd0b8f6df1e7d23c52ba35af7126fc9c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_afd0b8f6df1e7d23c52ba35af7126fc9c}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!gps@{gps}}
+\index{gps@{gps}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{gps}{gps}}
+{\footnotesize\ttfamily \#define gps~Serial1}
+
+short-\/form equivalent of Serial1, used to make G\+PS calls more intuitive \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a44b8fdfd19b8480719efc0c50f315f68}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a44b8fdfd19b8480719efc0c50f315f68}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!imuPower@{imuPower}}
+\index{imuPower@{imuPower}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{imuPower}{imuPower}}
+{\footnotesize\ttfamily \#define imu\+Power~12}
+
+pin number for imu\+Power gate for M\+O\+S\+F\+ET which ties the G\+ND pin of the B\+N\+O055 to circuit G\+ND, thus allowing current flow through the breakout \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a733f7d5b0fd44b87044a3fc9d4594ceb}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a733f7d5b0fd44b87044a3fc9d4594ceb}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!NUMPIXELS@{NUMPIXELS}}
+\index{NUMPIXELS@{NUMPIXELS}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{NUMPIXELS}{NUMPIXELS}}
+{\footnotesize\ttfamily \#define N\+U\+M\+P\+I\+X\+E\+LS~1}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR S\+E\+T\+T\+I\+NG \+: number of pixels on the board \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_adb011fa6ea998863169b38db055b3046}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_adb011fa6ea998863169b38db055b3046}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!SENSORMODE\_GONDOLA@{SENSORMODE\_GONDOLA}}
+\index{SENSORMODE\_GONDOLA@{SENSORMODE\_GONDOLA}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{SENSORMODE\_GONDOLA}{SENSORMODE\_GONDOLA}}
+{\footnotesize\ttfamily \#define S\+E\+N\+S\+O\+R\+M\+O\+D\+E\+\_\+\+G\+O\+N\+D\+O\+LA}
+
+used by preprocessor to define the code content compiled for the gondola \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a55319a97d01bdc1aec67578a00a99273}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a55319a97d01bdc1aec67578a00a99273}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!usb@{usb}}
+\index{usb@{usb}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{usb}{usb}}
+{\footnotesize\ttfamily \#define usb~Serial}
+
+short-\/form equivalent of Serial, used to make printing to serial monitor a little less painful \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a288169acace36670ae529e046fe4dad0}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a288169acace36670ae529e046fe4dad0}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_ATTN@{XB1\_ATTN}}
+\index{XB1\_ATTN@{XB1\_ATTN}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_ATTN}{XB1\_ATTN}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+A\+T\+TN~(7)}
+
+M4 P\+IN F\+OR X\+B\+EE A\+T\+TN \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7f1cc9ebc555801c37006048ec9dd356}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7f1cc9ebc555801c37006048ec9dd356}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_CMD@{XB1\_CMD}}
+\index{XB1\_CMD@{XB1\_CMD}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_CMD}{XB1\_CMD}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+C\+MD~(9)}
+
+M4 P\+IN N\+U\+M\+B\+ER F\+OR C\+O\+M\+M\+A\+ND S\+I\+G\+N\+AL \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa6dee8927a76abfe8bd3fe55cea8065e}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_aa6dee8927a76abfe8bd3fe55cea8065e}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_DEST\_ADDR@{XB1\_DEST\_ADDR}}
+\index{XB1\_DEST\_ADDR@{XB1\_DEST\_ADDR}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_DEST\_ADDR}{XB1\_DEST\_ADDR}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+A\+D\+DR~(0x0013\+A200417\+E3829)}
+
+defines the xbee1 end address, which is used by the xbee library to send packets in A\+PI mode \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a90c9494ffda39e7f2e6dc89314f3d5e5}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a90c9494ffda39e7f2e6dc89314f3d5e5}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_DEST\_ADDR\_DEFAULT@{XB1\_DEST\_ADDR\_DEFAULT}}
+\index{XB1\_DEST\_ADDR\_DEFAULT@{XB1\_DEST\_ADDR\_DEFAULT}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_DEST\_ADDR\_DEFAULT}{XB1\_DEST\_ADDR\_DEFAULT}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+A\+D\+D\+R\+\_\+\+D\+E\+F\+A\+U\+LT}
+
+used by the preprocessor to automatically define X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+A\+D\+DR to default values \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5597a0bd0dee1087d4bcdc248261ca72}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a5597a0bd0dee1087d4bcdc248261ca72}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_DEST\_COMMAND\_DIO@{XB1\_DEST\_COMMAND\_DIO}}
+\index{XB1\_DEST\_COMMAND\_DIO@{XB1\_DEST\_COMMAND\_DIO}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_DEST\_COMMAND\_DIO}{XB1\_DEST\_COMMAND\_DIO}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+C\+O\+M\+M\+A\+N\+D\+\_\+\+D\+IO~(\textquotesingle{}0\textquotesingle{})}
+
+D\+IO N\+U\+M\+B\+ER F\+OR D\+E\+S\+T\+I\+N\+A\+T\+I\+ON C\+O\+M\+M\+A\+ND P\+IN \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab22e4553ba5b13b1e03f35b653347616}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab22e4553ba5b13b1e03f35b653347616}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_DEST\_CUTDOWN\_DIO@{XB1\_DEST\_CUTDOWN\_DIO}}
+\index{XB1\_DEST\_CUTDOWN\_DIO@{XB1\_DEST\_CUTDOWN\_DIO}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_DEST\_CUTDOWN\_DIO}{XB1\_DEST\_CUTDOWN\_DIO}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+D\+E\+S\+T\+\_\+\+C\+U\+T\+D\+O\+W\+N\+\_\+\+D\+IO~(\textquotesingle{}5\textquotesingle{})}
+
+D\+IO N\+U\+M\+B\+ER F\+OR D\+E\+S\+T\+I\+N\+A\+T\+I\+ON C\+U\+T\+D\+O\+WN \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a21419217f9857630a6231835ade5a7de}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a21419217f9857630a6231835ade5a7de}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_LOC\_COMMAND\_DIO@{XB1\_LOC\_COMMAND\_DIO}}
+\index{XB1\_LOC\_COMMAND\_DIO@{XB1\_LOC\_COMMAND\_DIO}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_LOC\_COMMAND\_DIO}{XB1\_LOC\_COMMAND\_DIO}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+L\+O\+C\+\_\+\+C\+O\+M\+M\+A\+N\+D\+\_\+\+D\+IO~(\textquotesingle{}0\textquotesingle{})}
+
+D\+IO N\+U\+M\+B\+ER F\+OR L\+O\+C\+AL X\+B\+EE C\+O\+M\+M\+A\+ND P\+IN \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab215e4dfddd0dddd2ef0929dc59f5d74}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ab215e4dfddd0dddd2ef0929dc59f5d74}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_LOC\_CUTDOWN\_DIO@{XB1\_LOC\_CUTDOWN\_DIO}}
+\index{XB1\_LOC\_CUTDOWN\_DIO@{XB1\_LOC\_CUTDOWN\_DIO}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_LOC\_CUTDOWN\_DIO}{XB1\_LOC\_CUTDOWN\_DIO}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+L\+O\+C\+\_\+\+C\+U\+T\+D\+O\+W\+N\+\_\+\+D\+IO~(\textquotesingle{}5\textquotesingle{})}
+
+D\+IO N\+U\+M\+B\+ER F\+OR L\+O\+C\+AL X\+B\+EE C\+U\+T\+D\+O\+WN P\+IN \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_af42353cf260a458f10019484ab9be598}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_af42353cf260a458f10019484ab9be598}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_MAX\_PAYLOAD\_SIZE@{XB1\_MAX\_PAYLOAD\_SIZE}}
+\index{XB1\_MAX\_PAYLOAD\_SIZE@{XB1\_MAX\_PAYLOAD\_SIZE}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_MAX\_PAYLOAD\_SIZE}{XB1\_MAX\_PAYLOAD\_SIZE}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+M\+A\+X\+\_\+\+P\+A\+Y\+L\+O\+A\+D\+\_\+\+S\+I\+ZE~256}
+
+self explanatory, cannot exceed the NP value of the xbee (found in X\+C\+TU) \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad9d99f3a9a671f3f2587f77c807ba367}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ad9d99f3a9a671f3f2587f77c807ba367}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_PRIMARY\_MODE@{XB1\_PRIMARY\_MODE}}
+\index{XB1\_PRIMARY\_MODE@{XB1\_PRIMARY\_MODE}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_PRIMARY\_MODE}{XB1\_PRIMARY\_MODE}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+P\+R\+I\+M\+A\+R\+Y\+\_\+\+M\+O\+DE~(1)}
+
+Operational Mode for the Xbee1 object 0 = F\+A\+ST, 1 = A\+C\+C\+U\+R\+A\+TE, 2 = R\+E\+C\+E\+I\+V\+ER \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3baddeaf71875b9be12412b9e74734f9}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3baddeaf71875b9be12412b9e74734f9}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_SPI\_CLK@{XB1\_SPI\_CLK}}
+\index{XB1\_SPI\_CLK@{XB1\_SPI\_CLK}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_SPI\_CLK}{XB1\_SPI\_CLK}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+S\+P\+I\+\_\+\+C\+LK~(3000000)}
+
+S\+PI B\+US F\+R\+E\+Q\+U\+E\+N\+CY F\+OR X\+B\+EE D\+A\+TA \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7507a06d23d8c7b9a7dbe15ac2523ed2}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7507a06d23d8c7b9a7dbe15ac2523ed2}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_SS@{XB1\_SS}}
+\index{XB1\_SS@{XB1\_SS}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_SS}{XB1\_SS}}
+{\footnotesize\ttfamily \#define X\+B1\+\_\+\+SS~(5)}
+
+M4 P\+IN F\+OR X\+B\+EE S\+PI S\+L\+A\+VE S\+E\+L\+E\+CT 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_af5c084883d926ee301179832f5c9dab1}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_af5c084883d926ee301179832f5c9dab1}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!px@{px}}
+\index{px@{px}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{px()}{px()}}
+{\footnotesize\ttfamily Adafruit\+\_\+\+Dot\+Star px (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a733f7d5b0fd44b87044a3fc9d4594ceb}{N\+U\+M\+P\+I\+X\+E\+LS}}}]{,  }\item[{\mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a08685c1b3583762920c614f2aaecae19}{D\+A\+T\+A\+P\+IN}}}]{,  }\item[{\mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3d469462e83f0b22e224e350112fcf3a}{C\+L\+O\+C\+K\+P\+IN}}}]{,  }\item[{D\+O\+T\+S\+T\+A\+R\+\_\+\+B\+RG}]{ }\end{DoxyParamCaption})}
+
+O\+N\+B\+O\+A\+RD D\+O\+T\+S\+T\+AR \+: constructor call
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em N\+U\+M\+P\+I\+X\+EL} & number of pixels involved \\
+\hline
+\mbox{\texttt{ in}}  & {\em D\+A\+T\+A\+P\+IN} & data pin number for the dotstar \\
+\hline
+\mbox{\texttt{ in}}  & {\em C\+L\+O\+C\+K\+P\+IN} & clock pin number for the dotstar \\
+\hline
+\mbox{\texttt{ in}}  & {\em D\+O\+T\+S\+T\+A\+R\+\_\+\+B\+RG} & not used here \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae5851abbc81ce981b27ec117608497d8}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_ae5851abbc81ce981b27ec117608497d8}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!dotStarPostSetup@{dotStarPostSetup}}
+\index{dotStarPostSetup@{dotStarPostSetup}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{dotStarPostSetup}{dotStarPostSetup}}
+{\footnotesize\ttfamily bool dot\+Star\+Post\+Setup = false}
+
+Used in logical short-\/circuit to kill dot\+Star\+I\+M\+Usetup\+\_\+sense and dot\+Star\+Post\+Setup\+\_\+sense evaluation time after the setup period is over. \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_acc0df85d221974db3623214fbad16033}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_acc0df85d221974db3623214fbad16033}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!dotStarSetup\_stamp@{dotStarSetup\_stamp}}
+\index{dotStarSetup\_stamp@{dotStarSetup\_stamp}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{dotStarSetup\_stamp}{dotStarSetup\_stamp}}
+{\footnotesize\ttfamily long dot\+Star\+Setup\+\_\+stamp}
+
+Timestamp used by dot\+Star\+Post\+Setup\+\_\+sense to keep track of the period of setup \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a06fc1bd9d15645a3193e6f6ee1823604}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a06fc1bd9d15645a3193e6f6ee1823604}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!dotStarUpdate\_stamp@{dotStarUpdate\_stamp}}
+\index{dotStarUpdate\_stamp@{dotStarUpdate\_stamp}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{dotStarUpdate\_stamp}{dotStarUpdate\_stamp}}
+{\footnotesize\ttfamily long dot\+Star\+Update\+\_\+stamp}
+
+Timestamp used by dot\+Star\+I\+M\+Usetup\+\_\+sense to keep track of time between dotstar color updates \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a826768f545ad9326bea4abd724ef6609}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a826768f545ad9326bea4abd724ef6609}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!IMU@{IMU}}
+\index{IMU@{IMU}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{IMU}{IMU}}
+{\footnotesize\ttfamily Adafruit\+\_\+\+B\+N\+O055 I\+MU = Adafruit\+\_\+\+B\+N\+O055(55,B\+N\+O055\+\_\+\+A\+D\+D\+R\+E\+S\+S\+\_\+B)}
+
+B\+N\+O055 I\+MU Class object constructor call \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_afafbfd91b6f7d4c297b4d3ee65681b4c}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_afafbfd91b6f7d4c297b4d3ee65681b4c}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!XB1\_NP@{XB1\_NP}}
+\index{XB1\_NP@{XB1\_NP}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{XB1\_NP}{XB1\_NP}}
+{\footnotesize\ttfamily uint16\+\_\+t X\+B1\+\_\+\+NP}
+
+holds the value for AT property NP (max payload size) to prove that the xbee is connected and functioning correctly in setup() \mbox{\Hypertarget{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3b7a76322754b62db89459f61f8cd82d}\label{_itsy_bitsy_m4___gond___sail___receiver_8ino_a3b7a76322754b62db89459f61f8cd82d}} 
+\index{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}!xbee@{xbee}}
+\index{xbee@{xbee}!ItsyBitsyM4\_Gond\_Sail\_Receiver.ino@{ItsyBitsyM4\_Gond\_Sail\_Receiver.ino}}
+\doxysubsubsection{\texorpdfstring{xbee}{xbee}}
+{\footnotesize\ttfamily Xbee xbee = Xbee(\mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a7507a06d23d8c7b9a7dbe15ac2523ed2}{X\+B1\+\_\+\+SS}}, \mbox{\hyperlink{_itsy_bitsy_m4___gond___sail___receiver_8ino_a288169acace36670ae529e046fe4dad0}{X\+B1\+\_\+\+A\+T\+TN}})}
+
+xbee object declaration and constructor call 

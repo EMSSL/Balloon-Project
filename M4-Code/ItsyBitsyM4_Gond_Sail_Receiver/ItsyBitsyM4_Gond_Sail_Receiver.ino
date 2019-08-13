@@ -1,19 +1,19 @@
- /*
- * BALLOON PROJECT 
- * 
- * Author :          Gerrit Motes 8/8/19
- * Special Contrib:  MakeFiles by Rodney Metoyer in The BeforeTime, in The LongLongAgo...
- * 
- * Equipment integrated into this build:
+/*! \file ItsyBitsyM4_Gond_Sail_Receiver.ino
+ *	\author Gerrit Motes
+ *	\date August 8 2019
+ *	\version 1.0
+ * 	\brief EMSSL Balloon Project Telemetry Middleware
+ * 	\details Middleware for the ItsyBitsy M4 express microcontroller.
+ *
+ * 	Equipment integrated into this build:
  *  - Adafruit BNO055 9DOF IMU
  *  - Adafruit BME280 Altimeter
  *  - Adafruit Ultimate GPS breakout
  *  - Adafruit microSD reader/writeer breakout
  *  - Hobbyking small pitotstatic tube with an Adafruit ADS115 ADC
  *  - Digi Intl. Xbee 900HP S3B radio / sparkfun xplorer regulated
- *  
- *  Previous Rev: Gondola_Final_Jun19
  */
+
 
 
 
@@ -23,6 +23,15 @@
 //*************************************************************************************************************
 // SENSOR PACK TYPE : UNCOMMENT WHICH HARDWARE APPLICATION YOU ARE USING THIS FOR, COMMENT OUT THE OTHERS
 //
+/*!
+ * \def SENSORMODE_GONDOLA
+ * used by preprocessor to define the code content compiled for the gondola
+ * \def SENSORMODE_SAIL
+ * used by preprocessor to define the code content compiled for the sail
+ * \def SENSORMODE_RECEIVER
+ * used by preprocessor to define the code content compiled for the sail
+ * NOTE: THE RECEIVER MODE IS NOT CURRENTLY FUNCTIONAL
+ */
 #define SENSORMODE_GONDOLA
 //#define SENSORMODE_SAIL
 //#define SENSORMODE_RECEIVER
@@ -31,7 +40,14 @@
 //************  NO TOUCHY BELOW UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
 //************  NO TOUCHY BELOW UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
 //************  NO TOUCHY BELOW UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
-
+/*!
+ * \def XB1_DEST_ADDR_DEFAULT
+ * used by the preprocessor to automatically define XB1_DEST_ADDR to default values
+ * \def XB1_DEST_ADDR
+ * defines the xbee1 end address, which is used by the xbee library to send packets in API mode
+ * \def XB2_DEST_ADDR
+ * defines the xbee2 end address, NOTE, ONLY FOR RECEIVER MODE
+ */
 //XBEE DESTINATION ADDRESS1: 
 //  UNCOMMENT WHICH XBEE DESTINATION ADDRESS YOU WANT TO COMMUNICATE WITH, UNCOMMENT THE REMAINDER
 //
@@ -60,16 +76,34 @@
 //************  NO TOUCHY ABOVE UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
 //************  NO TOUCHY ABOVE UNTIL THIS LINE IS REMOVED, HARD-CODED FOR 8/10/19 TEST, SEARCH &&&& FOR DETAILS
 
+/*!
+ * \def XBEE1_NAME
+ * determines the name of the system with which the xbee1 is receiving from
+ * NOTE: ONLY USED FOR RECEIVER!
+ * \def XBEE2_NAME
+ * determines the name of the system with which the xbee2 is receiving from
+ * NOTE: ONLY USED FOR RECEIVER!
+ */
 //XBEE UNIT NAMES : RECEIVER USE ONLY!
 //  UNCOMMENT THE NAME OF EACH UNIT THE CORRESPONDING RECEIVE XBEE WILL BE RECEIVING FROM
 //  COMMENT OUT THE REST, USED FOR FORMATTING THE HUD. 
 //
 //    XBEE1 TRANSMITTER NAME
+/*!
+ * \def XBEE1_NAME
+ * determines the name of the system with which the xbee1 is receiving from
+ * NOTE: ONLY USED FOR RECEIVER!
+ */
 //      #define XBEE1_NAME "GONDOLA"
 //      #define XBEE1_NAME "SAIL"
 //      #define XBEE1_NAME "OTHER"    // CHANGE OTHER TO YOUR PREFERRED NAME (LIMIT 7 CHARACTERS)
 //
 //    XBEE2 TRANSMITTER NAME
+/*!
+ * \def XBEE2_NAME
+ * determines the name of the system with which the xbee2 is receiving from
+ * NOTE: ONLY USED FOR RECEIVER!
+ */
 //      #define XBEE2_NAME "GONDOLA"
 //      #define XBEE2_NAME "SAIL"
 //      #define XBEE2_NAME "OTHER"    // CHANGE OTHER TO YOUR PREFERRED NAME (LIMIT 7 CHARACTERS)
@@ -123,14 +157,46 @@
 
 
     // SETUP DOTSTAR STUFF, INCLUDING SPECIFIC COLORS FOR EACH CONFIG
+	/*!
+	 * \def NUMPIXELS
+	 * ONBOARD DOTSTAR SETTING : number of pixels on the board
+	 */
     #define NUMPIXELS 1             // There is only one pixel on the board
+	/*!
+	 * \def DATAPIN
+	 * ONBOARD DOTSTAR : data pin (pin # 8)
+	 */
     #define DATAPIN    8            //Use these pin definitions for the ItsyBitsy M4
+	/*!
+	 * \def CLOCKPIN
+	 * ONBOARD DOTSTAR : clock pin (pin # 6)
+	 */
     #define CLOCKPIN   6            //
+	/*!
+	 * ONBOARD DOTSTAR : constructor call
+	 *
+	 * \param[in] NUMPIXEL	number of pixels involved
+	 * \param[in] DATAPIN	data pin number for the dotstar
+	 * \param[in] CLOCKPIN	clock pin number for the dotstar
+	 * \param[in] DOTSTAR_BRG not used here
+	 */
     Adafruit_DotStar px(NUMPIXELS, DATAPIN, CLOCKPIN, DOTSTAR_BRG);
     
     #if defined(SENSORMODE_GONDOLA)
+    /*!
+     * \def DOTSTAR_MODECOLOR_RED
+     * ONBOARD DOTSTAR : the main mode indication lighting, red component (0-255)
+     */
       #define DOTSTAR_MODECOLOR_RED 0
+    /*!
+      * \def DOTSTAR_MODECOLOR_GREEN
+      * ONBOARD DOTSTAR : the main mode indication lighting, green component (0-255)
+      */
       #define DOTSTAR_MODECOLOR_GREEN 0
+    /*!
+       * \def DOTSTAR_MODECOLOR_BLUE
+       * ONBOARD DOTSTAR : the main mode indication lighting, blue component (0-255)
+       */
       #define DOTSTAR_MODECOLOR_BLUE 100
     #elif defined(SENSORMODE_SAIL)
       #define DOTSTAR_MODECOLOR_RED 0
@@ -138,10 +204,28 @@
       #define DOTSTAR_MODECOLOR_BLUE 0
     #endif
     
+    /*!
+     * \def dotStarUpdate_thresh
+     * used by dotStarIMUsetup_sense to update the M4's onboard dotstar with IMU info
+     */
     #define dotStarUpdate_thresh 20 // update the color combo of the dotstar every 20 milliseconds
+    /*!
+     * \def dotStarPostSetup_thresh
+     * used by dotStarPostSetup_sense to change the M4's onboard dotstar back to its respective
+     * DOTSTAR_MODECOLOR combo, which is determined by SENSORMODE
+     */
     #define dotStarPostSetup_thresh 60000      // after 2 minutes of imu setup colors, revert to config-specific color
+    /*!
+     *  Timestamp used by dotStarIMUsetup_sense to keep track of time between dotstar color updates
+     */
     long dotStarUpdate_stamp;       // used to track updates
+    /*!
+     *  Timestamp used by dotStarPostSetup_sense to keep track of the period of setup
+     */
     long dotStarSetup_stamp;               // used to track the period of setup
+    /*!
+     * Used in logical short-circuit to kill dotStarIMUsetup_sense and dotStarPostSetup_sense evaluation time after the setup period is over.
+     */
     bool dotStarPostSetup = false;       // used to kill the post-setup protothread
 
     
@@ -150,31 +234,98 @@
     
     // sets up IMU addresses based on the sensormode defined (remote IMU is Add.A, on-board IMU is Add.B)
     #if defined(SENSORMODE_GONDOLA) || defined(SENSORMODE_RECEIVER)
+    /*!
+     * BNO055 IMU Class object constructor call
+     */
       Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
+      /*!
+       * \def imuPower
+       * pin number for imuPower
+       * gate for MOSFET which ties the GND pin of the BNO055 to circuit GND, thus allowing current flow through the breakout
+       */
       #define imuPower 12     // used on the imu power transistor gate for a hard reset
     #elif defined(SENSORMODE_SAIL)
       Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
       #define imuPower 12     // used on the imu power transistor gate for a hard reset
     #endif
     
+    /*!
+     * \def usb
+     * short-form equivalent of Serial, used to make printing to serial monitor a little less painful
+     */
     #define usb Serial            // renames Serial as usb
+    /*!
+     * \def gps
+     * short-form equivalent of Serial1, used to make GPS calls more intuitive
+     */
     #define gps Serial1           // renames Serial2 as gps
     
     //Xbee OBJECT DEFINITION
+
+    /*!
+     * \def XB1_SS
+     * M4 PIN FOR XBEE SPI SLAVE SELECT
+     */
     #define XB1_SS (5)                          // M4 PIN FOR XBEE SPI SLAVE SELECT
+      /*!
+      * \def XB1_ATTN
+      * M4 PIN FOR XBEE ATTN
+      */
     #define XB1_ATTN (7)                        // M4 PIN FOR XBEE ATTN 
+      /*!
+      * \def XB1_CMD
+      * M4 PIN NUMBER FOR COMMAND SIGNAL
+      */
     #define XB1_CMD (9)                         // M4 PIN NUMBER FOR COMMAND SIGNAL
+      /*!
+      * \def XB1_LOC_COMMAND_DIO
+      * DIO NUMBER FOR LOCAL XBEE COMMAND PIN
+      */
     #define XB1_LOC_COMMAND_DIO ('0')           // DIO NUMBER FOR LOCAL XBEE COMMAND PIN
+      /*!
+      * \def XB1_LOC_CUTDOWN_DIO
+      * DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
+      */
     #define XB1_LOC_CUTDOWN_DIO ('5')           // DIO NUMBER FOR LOCAL XBEE CUTDOWN PIN
+      /*!
+      * \def XB1_DEST_COMMAND_DIO
+      * DIO NUMBER FOR DESTINATION COMMAND PIN
+      */
     #define XB1_DEST_COMMAND_DIO ('0')          // DIO NUMBER FOR DESTINATION COMMAND PIN
+      /*!
+      * \def XB1_DEST_CUTDOWN_DIO
+      * DIO NUMBER FOR DESTINATION CUTDOWN
+      */
     #define XB1_DEST_CUTDOWN_DIO ('5')          // DIO NUMBER FOR DESTINATION CUTDOWN 
+      /*!
+      * \def XB1_SPI_CLK
+      * SPI BUS FREQUENCY FOR XBEE DATA
+      */
     #define XB1_SPI_CLK (3000000)               // SPI BUS FREQUENCY FOR XBEE DATA
+      /*!
+      * \def XB1_PRIMARY_MODE
+      * Operational Mode for the Xbee1 object
+      * 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+      */
     #define XB1_PRIMARY_MODE (1)                // 0 = FAST, 1 = ACCURATE, 2 = RECEIVER
+      /*!
+      * \def XB1_MAX_PAYLOAD_SIZE
+      * self explanatory, cannot exceed the NP value of the xbee (found in XCTU)
+      */
     #define XB1_MAX_PAYLOAD_SIZE 256                 // cannot exceed NP (256)
+      /*!
+       * xbee object declaration and constructor call
+       */
     Xbee xbee = Xbee(XB1_SS, XB1_ATTN);         // CONSTRUCTOR FOR XBEE OBJECT
+    /*!
+     * holds the value for AT property NP (max payload size) to prove that the xbee is connected and functioning correctly in setup()
+     */
     uint16_t XB1_NP;                            // holds the value for AT property NP (max payload size)
+
     bool stringGrab_init = false;
+
     bool stringGrab_gps = false;
+
     bool stringGrab_other = false;
     
     // RUDDER CONTROL STUFFS
