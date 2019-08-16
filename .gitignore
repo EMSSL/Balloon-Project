@@ -1,7 +1,4 @@
 # Created by CDY on 2019-08-16 to keep .mat files on git without the massive rawfiles
 #
 # Ignore all directores in the below structure which are titled "Data"
-# **/Data
-$ git rm --cashed **/Data
-rm '**/Data'
-$ git commit -m "Tried getting rid of old mistake"
+**/Data
