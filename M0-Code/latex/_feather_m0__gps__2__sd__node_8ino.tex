@@ -1,0 +1,106 @@
+\hypertarget{_feather_m0__gps__2__sd__node_8ino}{}\doxysection{Feather\+M0\+\_\+gps\+\_\+2\+\_\+sd\+\_\+node/\+Feather\+M0\+\_\+gps\+\_\+2\+\_\+sd\+\_\+node.ino File Reference}
+\label{_feather_m0__gps__2__sd__node_8ino}\index{FeatherM0\_gps\_2\_sd\_node/FeatherM0\_gps\_2\_sd\_node.ino@{FeatherM0\_gps\_2\_sd\_node/FeatherM0\_gps\_2\_sd\_node.ino}}
+
+
+A barebones N\+M\+EA sentence datalogger build for the Adafruit Feather Adalogger Cortex-\/\+M0.  
+
+
+{\ttfamily \#include $<$pt.\+h$>$}\newline
+{\ttfamily \#include $<$S\+D.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+Sensor.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+G\+P\+S.\+h$>$}\newline
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a55319a97d01bdc1aec67578a00a99273}\label{_feather_m0__gps__2__sd__node_8ino_a55319a97d01bdc1aec67578a00a99273}} 
+\#define {\bfseries usb}~Serial
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_afd0b8f6df1e7d23c52ba35af7126fc9c}\label{_feather_m0__gps__2__sd__node_8ino_afd0b8f6df1e7d23c52ba35af7126fc9c}} 
+\#define {\bfseries gps}~Serial1
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a7e2d8ef8f0724f23ce84b1e7d0c171d9}\label{_feather_m0__gps__2__sd__node_8ino_a7e2d8ef8f0724f23ce84b1e7d0c171d9}} 
+\#define {\bfseries S\+D\+\_\+\+CS}~4
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a64d5ed76daae4cc9cd2af23cee4da1c5}\label{_feather_m0__gps__2__sd__node_8ino_a64d5ed76daae4cc9cd2af23cee4da1c5}} 
+\#define {\bfseries gps\+Write\+Thresh}~5
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a17595c9fe0c65060057bb29ef5dfbfa5}\label{_feather_m0__gps__2__sd__node_8ino_a17595c9fe0c65060057bb29ef5dfbfa5}} 
+\#define {\bfseries G\+P\+S\+E\+C\+HO}~false
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a754d3abd9597e517b16306ed62bcea58}\label{_feather_m0__gps__2__sd__node_8ino_a754d3abd9597e517b16306ed62bcea58}} 
+void {\bfseries use\+Interrupt} (boolean)
+\item 
+void \mbox{\hyperlink{_feather_m0__gps__2__sd__node_8ino_ae3f20a5a4f45810cd3223e55574a3bae}{get\+G\+PS}} ()
+\begin{DoxyCompactList}\small\item\em The function that grabs new G\+PS sentences. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{_feather_m0__gps__2__sd__node_8ino_ac7b58bc5521481efa29c71f98a6d5d2e}{make\+Files}} ()
+\begin{DoxyCompactList}\small\item\em Finds unique filenames on the SD card and opens/assigns them to global File declarations. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a6745f86d1460523cfe60e6c4dd169448}\label{_feather_m0__gps__2__sd__node_8ino_a6745f86d1460523cfe60e6c4dd169448}} 
+void {\bfseries serial\+Event\+Run} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_acc2c364d8f672214841288412403b779}\label{_feather_m0__gps__2__sd__node_8ino_acc2c364d8f672214841288412403b779}} 
+long {\bfseries gps\+Time\+Stamp} = 0
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a0d437c0e6b088c8249e8fc523b84a03f}\label{_feather_m0__gps__2__sd__node_8ino_a0d437c0e6b088c8249e8fc523b84a03f}} 
+String {\bfseries gps\+Stuff} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a49f9cba61117124faf4f801f064cab43}\label{_feather_m0__gps__2__sd__node_8ino_a49f9cba61117124faf4f801f064cab43}} 
+String {\bfseries G\+P\+Sflush\+Total} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_aeae894d76ee26bb24c0961def82625b0}\label{_feather_m0__gps__2__sd__node_8ino_aeae894d76ee26bb24c0961def82625b0}} 
+File {\bfseries G\+P\+Sdata}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_ac29b14803acec0f696b6ed51c1e227a3}\label{_feather_m0__gps__2__sd__node_8ino_ac29b14803acec0f696b6ed51c1e227a3}} 
+uint8\+\_\+t {\bfseries G\+P\+Swrite\+Count} = 0
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_a6eea268f79912446e3fa269c256ef025}\label{_feather_m0__gps__2__sd__node_8ino_a6eea268f79912446e3fa269c256ef025}} 
+Adafruit\+\_\+\+G\+PS G\+PS \& {\bfseries gps}
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_aff2883e8ec712eae433249c05acc02d7}\label{_feather_m0__gps__2__sd__node_8ino_aff2883e8ec712eae433249c05acc02d7}} 
+boolean {\bfseries using\+Interrupt} = false
+\item 
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_adc6a08d1c4611535bc9527c8e2d4f75c}\label{_feather_m0__gps__2__sd__node_8ino_adc6a08d1c4611535bc9527c8e2d4f75c}} 
+bool {\bfseries gps\+Error} = false
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+A barebones N\+M\+EA sentence datalogger build for the Adafruit Feather Adalogger Cortex-\/\+M0. 
+
+Feather32u4\+\_\+gps\+\_\+2\+\_\+sd\+\_\+node by Gerrit Motes, E\+M\+S\+SL N\+C\+SU, 7/12/19
+
+Used to measure d\+G\+P\+S/\+G\+PS location data and write to a micro\+SD card.
+
+Uses the following hardware\+:
+\begin{DoxyItemize}
+\item Adafruit Feather Cortex-\/\+M0 Adalogger
+\item Adafruit Ultimate G\+PS Feather\+Wing 
+\end{DoxyItemize}
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_ae3f20a5a4f45810cd3223e55574a3bae}\label{_feather_m0__gps__2__sd__node_8ino_ae3f20a5a4f45810cd3223e55574a3bae}} 
+\index{FeatherM0\_gps\_2\_sd\_node.ino@{FeatherM0\_gps\_2\_sd\_node.ino}!getGPS@{getGPS}}
+\index{getGPS@{getGPS}!FeatherM0\_gps\_2\_sd\_node.ino@{FeatherM0\_gps\_2\_sd\_node.ino}}
+\doxysubsubsection{\texorpdfstring{getGPS()}{getGPS()}}
+{\footnotesize\ttfamily void get\+G\+PS (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+The function that grabs new G\+PS sentences. 
+
+uses the .last\+N\+M\+E\+A() method to grab an N\+M\+EA sentence in String form. It then prints the sentence to the serial monitor, writes it to SD memory, and syncronizes the SD card. It then clears the memory. \mbox{\Hypertarget{_feather_m0__gps__2__sd__node_8ino_ac7b58bc5521481efa29c71f98a6d5d2e}\label{_feather_m0__gps__2__sd__node_8ino_ac7b58bc5521481efa29c71f98a6d5d2e}} 
+\index{FeatherM0\_gps\_2\_sd\_node.ino@{FeatherM0\_gps\_2\_sd\_node.ino}!makeFiles@{makeFiles}}
+\index{makeFiles@{makeFiles}!FeatherM0\_gps\_2\_sd\_node.ino@{FeatherM0\_gps\_2\_sd\_node.ino}}
+\doxysubsubsection{\texorpdfstring{makeFiles()}{makeFiles()}}
+{\footnotesize\ttfamily int make\+Files (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Finds unique filenames on the SD card and opens/assigns them to global File declarations. 
+
+Uses predefined const char filenames (e.\+g. G\+P\+S\+L\+O\+G05.\+T\+XT) and cycles through the last 2 digits from 00 to 99, checking for the existence of each file until a filename is found that doesn\textquotesingle{}t alread exist. It then attempts to open that file. If successful, it assigns it to its respective global File object (e.\+g. G\+P\+Sdata). 
