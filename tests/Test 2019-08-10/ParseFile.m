@@ -133,6 +133,7 @@ function [data] = ParseFile(filename, varargin)
 FileFlag = NaN;   % GPS flag = 0, AO flag = 1
 startLine = 1;  % 1 == start at the top of the file
 dirnoff = 0;    % deg, offset between ground station wind vane and IMU
+linenum = 1e5;  % limit to dataset
 
 % set varargin
 if isempty(varargin) ~= 1
@@ -146,6 +147,8 @@ if isempty(varargin) ~= 1
                     FileFlag = 1;
                 elseif strcmp(varargin{2*(i1 - 1) + 2}, 'GND2018') == 1
                     FileFlag = 2;
+                elseif strcmp(varargin{2*(i1 - 1) + 2}, 'GND2019') == 1
+                    FileFlag = 3;
                 else
                     error('filetype value is not a valid selection.');
                 end
@@ -167,6 +170,13 @@ if isempty(varargin) ~= 1
                     dirnoff = varargin{2*(i1 - 1) + 2};
                 end
                 
+            case 'linenum'
+                if isnumeric(varargin{2*(i1 - 1) + 2}) ~= 1
+                    error('linenum is not numeric.');
+                else
+                    linenum = varargin{2*(i1 - 1) + 2};
+                end
+                
             otherwise
         end
     end
@@ -184,6 +194,9 @@ if isnan(FileFlag) == 1
 end
 
 % parse file
+cntr1 = 1;
+cntr2 = 1;
+cntr3 = 1;
 switch FileFlag 
     
     % GPS file
@@ -193,8 +206,8 @@ switch FileFlag
             newline = fgetl(fid);
         end
         exitFlag = 0;
-        GPGGA = [];
-        GPRMC = [];
+        GPGGA = NaN(linenum, 11);
+        GPRMC = NaN(linenum, 8);
         while exitFlag < 3
             % newline
             if newline == -1
@@ -202,58 +215,66 @@ switch FileFlag
             else
                 c1 = strsplit(newline, ',');
                 % if strcmp(c1{1}, '$GPGGA') == 1 && length(c1) > 10
-                if strcmp(c1{1}, '$GPGGA') == 1 && length(c1) == 14
-                    tmeraw = c1{2};
-                    hr = str2double(tmeraw(1:2));
-                    mn = str2double(tmeraw(3:4));
-                    sc = str2double(tmeraw(5:end));
-                    latraw = c1{3};
-                    latdd = str2double(latraw(1:2)) + str2double(latraw(3:end))/60;
-                    if strcmp(c1{4}, 'S') == 1
-                        latdd = -latdd;
-                    end
-                    lonraw = c1{5};
-                    londd = str2double(lonraw(1:3)) + str2double(lonraw(4:end))/60;
-                    if strcmp(c1{6}, 'W') == 1
-                        londd = -londd;
-                    end
-                    gpsfix = str2double(c1{7});
-                    satnums = str2double(c1{8});
-                    hdop = str2double(c1{9});
-                    alt = str2double(c1{10});
-                    geoidhgt = str2double(c1{12});
-                    elpsdtme = hr*3600 + mn*60 + sc;
-                    temparry = [hr, mn, sc, latdd, londd, gpsfix, satnums, hdop, alt, geoidhgt, elpsdtme];
-                    GPGGA = [GPGGA; temparry];
-                    % keyboard
-                 
+                try
+                    if strcmp(c1{1}, '$GPGGA') == 1 && length(c1) == 14
+                        tmeraw = c1{2};
+                        hr = str2double(tmeraw(1:2));
+                        mn = str2double(tmeraw(3:4));
+                        sc = str2double(tmeraw(5:end));
+                        latraw = c1{3};
+                        latdd = str2double(latraw(1:2)) + str2double(latraw(3:end))/60;
+                        if strcmp(c1{4}, 'S') == 1
+                            latdd = -latdd;
+                        end
+                        lonraw = c1{5};
+                        londd = str2double(lonraw(1:3)) + str2double(lonraw(4:end))/60;
+                        if strcmp(c1{6}, 'W') == 1
+                            londd = -londd;
+                        end
+                        gpsfix = str2double(c1{7});
+                        satnums = str2double(c1{8});
+                        hdop = str2double(c1{9});
+                        alt = str2double(c1{10});
+                        geoidhgt = str2double(c1{12});
+                        elpsdtme = hr*3600 + mn*60 + sc;
+                        temparry = [hr, mn, sc, latdd, londd, gpsfix, satnums, hdop, alt, geoidhgt, elpsdtme];
+                        % GPGGA = [GPGGA; temparry];
+                        GPGGA(cntr1, :) = temparry;
+                        cntr1 = cntr1 + 1;
+                        % keyboard
                     
-                elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) == 11
-                % elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) > 10
-                    tmeraw = c1{2};
-                    hr = str2double(tmeraw(1:2));
-                    mn = str2double(tmeraw(3:4));
-                    sc = str2double(tmeraw(5:end));
-                    latraw = c1{4};
-                    latdd = str2double(latraw(1:2)) + str2double(latraw(3:end))/60;
-                    if strcmp(c1{5}, 'S') == 1
-                        latdd = -latdd;
+                    elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) == 11
+                    % elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) > 10
+                        tmeraw = c1{2};
+                        if length(tmeraw) > 3
+                            hr = str2double(tmeraw(1:2));
+                            mn = str2double(tmeraw(3:4));
+                            sc = str2double(tmeraw(5:end));
+                            latraw = c1{4};
+                            latdd = str2double(latraw(1:2)) + str2double(latraw(3:end))/60;
+                            if strcmp(c1{5}, 'S') == 1
+                                latdd = -latdd;
+                            end
+                            lonraw = c1{6};
+                            londd = str2double(lonraw(1:3)) + str2double(lonraw(4:end))/60;
+                            if strcmp(c1{7}, 'W') == 1
+                                londd = -londd;
+                            end
+                            spd = str2double(c1{8});
+                            magvar = str2double(c1{9});
+                            elpsdtme = hr*3600 + mn*60 + sc;
+                            temparry = [hr, mn, sc, latdd, londd, spd, magvar, elpsdtme];
+                            % GPRMC = [GPRMC; temparry];
+                            GPRMC(cntr2, :) = temparry;
+                            cntr2 = cntr2 + 1;
+                        end   
+                    else
+                        % warning('Dunno what to do here.... skip?');
                     end
-                    lonraw = c1{6};
-                    londd = str2double(lonraw(1:3)) + str2double(lonraw(4:end))/60;
-                    if strcmp(c1{7}, 'W') == 1
-                        londd = -londd;
-                    end
-                    spd = str2double(c1{8});
-                    magvar = str2double(c1{9});
-                    elpsdtme = hr*3600 + mn*60 + sc;
-                    temparry = [hr, mn, sc, latdd, londd, spd, magvar, elpsdtme];
-                    GPRMC = [GPRMC; temparry];
-                    
-                else
+                catch 
+                    keyboard
                 end
-                    
-            end
+            end  
             newline = fgetl(fid);
         end
         fclose(fid);
@@ -267,7 +288,7 @@ switch FileFlag
             newline = fgetl(fid);
         end
         exitFlag = 0;
-        AO = [];
+        AO = NaN(linenum, 26);
         cntr = 0;
         while exitFlag < 3
             % cntr = cntr + 1
@@ -326,7 +347,9 @@ switch FileFlag
                 temparry = [hr, mn, sc, ms, alt, ax, ay, az, ...
                     wx, wy, wz, mx, my, mz, ex, ey, ez, gx, gy, ...
                     gz, temp, pres, humd, altalt, pitot, elpsdtme];
-                AO = [AO; temparry];
+                % AO = [AO; temparry];
+                AO(cntr3, :) = temparry;
+                cntr3 = cntr3 + 1;
             end
             newline = fgetl(fid);
             cntr = cntr + 1;
@@ -345,56 +368,62 @@ switch FileFlag
             newline = fgetl(fid);
         end
         exitFlag = 0;
-        GND = [];
+        GND = NaN(linenum, 25);
         cntr = 0;
         while exitFlag < 3
             if newline == -1
                 exitFlag = exitFlag - newline;
             else
-                c1 = strsplit(newline, ',');    
-                d1 = strsplit(c1{1});
-                tmeraw = d1{1};
-                if isempty(tmeraw) == 1
-                    hr = 0;
-                    mn = 0;
-                    sc = 0;
-                    
-                else
-                    hr = str2double(tmeraw(1:2));
-                    mn = str2double(tmeraw(3:4));
-                    sc = str2double(tmeraw(5:end));
+                try
+                    c1 = strsplit(newline, ',');    
+                    d1 = strsplit(c1{1});
+                    tmeraw = d1{1};
+                    if isempty(tmeraw) == 1
+                        hr = 0;
+                        mn = 0;
+                        sc = 0;
+
+                    else
+                        hr = str2double(tmeraw(1:2));
+                        mn = str2double(tmeraw(3:4));
+                        sc = str2double(tmeraw(5:end));
+                    end
+                        ms = str2double(d1{3});
+                    if ms < 0
+                        ms = -ms;
+                    end
+                    elpsdtme = hr*3600 + mn*60 + sc + ms/1000;
+                    d2 = strsplit(c1{2}, ':');
+                    alt = str2double(d2{1});
+                    ax = str2double(d2{2});
+                    ay = str2double(c1{3});
+                    az = str2double(c1{4});
+                    wx = str2double(c1{5});
+                    wy = str2double(c1{6});
+                    wz = str2double(c1{7});
+                    mx = str2double(c1{8});
+                    my = str2double(c1{9});
+                    mz = str2double(c1{10});
+                    ex = str2double(c1{11});
+                    ey = str2double(c1{12});
+                    ez = str2double(c1{13});
+                    gx = str2double(c1{14});
+                    gy = str2double(c1{15});
+                    gz = str2double(c1{16});
+                    temp = str2double(c1{17});
+                    sped = str2double(c1{18});
+                    gust = str2double(c1{19});               
+                    b1 = strsplit(c1{20}, '%%');
+                    dirn = str2double(b1{1}) + dirnoff;
+                    temparry = [hr, mn, sc, ms, alt, ax, ay, az, ...
+                        wx, wy, wz, mx, my, mz, ex, ey, ez, gx, gy, ...
+                        gz, temp, sped, gust, dirn, elpsdtme];
+                    % GND = [GND; temparry];
+                    GND(cntr3, :) = temparry;
+                    cntr3 = cntr3 + 1;
+                catch
+                    keyboard
                 end
-                    ms = str2double(d1{3});
-                if ms < 0
-                    ms = -ms;
-                end
-                elpsdtme = hr*3600 + mn*60 + sc + ms/1000;
-                d2 = strsplit(c1{2}, ':');
-                alt = str2double(d2{1});
-                ax = str2double(d2{2});
-                ay = str2double(c1{3});
-                az = str2double(c1{4});
-                wx = str2double(c1{5});
-                wy = str2double(c1{6});
-                wz = str2double(c1{7});
-                mx = str2double(c1{8});
-                my = str2double(c1{9});
-                mz = str2double(c1{10});
-                ex = str2double(c1{11});
-                ey = str2double(c1{12});
-                ez = str2double(c1{13});
-                gx = str2double(c1{14});
-                gy = str2double(c1{15});
-                gz = str2double(c1{16});
-                temp = str2double(c1{17});
-                sped = str2double(c1{18});
-                gust = str2double(c1{19});               
-                b1 = strsplit(c1{20}, '%%');
-                dirn = str2double(b1{1}) + dirnoff;
-                temparry = [hr, mn, sc, ms, alt, ax, ay, az, ...
-                    wx, wy, wz, mx, my, mz, ex, ey, ez, gx, gy, ...
-                    gz, temp, sped, gust, dirn, elpsdtme];
-                GND = [GND; temparry];
             end
             newline = fgetl(fid);
             cntr = cntr + 1;
@@ -413,58 +442,78 @@ switch FileFlag
             newline = fgetl(fid);
         end
         exitFlag = 0;
-        GND = [];
+        % GND = [];
+        GND = NaN(linenum, 26);
         cntr = 0;
         while exitFlag < 3
             if newline == -1
                 exitFlag = exitFlag - newline;
             else
-                c1 = strsplit(newline, ',');    
-                d1 = strsplit(c1{1});
-                tmeraw = d1{1};
-                if isempty(tmeraw) == 1
-                    hr = 0;
-                    mn = 0;
-                    sc = 0;
-                    
-                else
-                    hr = str2double(tmeraw(1:2));
-                    mn = str2double(tmeraw(3:4));
-                    sc = str2double(tmeraw(5:end));
-                end
-                    ms1 = d1{3};
-                    ms = str2double(ms1(1:end-2));
+                try
+                    c1 = strsplit(newline, ',');    
+                    d1 = strsplit(c1{1});
+                    tmeraw = d1{1};
+                    if isempty(tmeraw) == 1
+                        hr = 0;
+                        mn = 0;
+                        sc = 0;
+
+                    else
+                        hr = str2double(tmeraw(1:2));
+                        mn = str2double(tmeraw(3:4));
+                        sc = str2double(tmeraw(5:end));
+                    end
+                        % ms1 = c1{2};
+                        % ms = str2double(ms1(1:end-2));
+                        % ms = str2double(c1{3});
+                        % keyboard
+                        ms1 = strsplit(c1{2}, 'M');
+                        ms = str2double(ms1{1});
+                    if ms < 0
+                        ms = -ms;
+                    end
+                    elpsdtme = hr*3600 + mn*60 + sc + ms/1000;
+                    % d2 = strsplit(c1{2}, ':');
+                    d2 = strsplit(c1{3}, ':');
+                    alt = str2double(d2{1});
+                    ax = str2double(d2{2});
+                    ay = str2double(c1{4});
+                    az = str2double(c1{5});
+                    wx = str2double(c1{6});
+                    wy = str2double(c1{7});
+                    wz = str2double(c1{8});
+                    mx = str2double(c1{9});
+                    my = str2double(c1{10});
+                    mz = str2double(c1{11});
+                    ex = str2double(c1{12});
+                    ey = str2double(c1{13});
+                    ez = str2double(c1{14});
+                    gx = str2double(c1{15});
+                    gy = str2double(c1{16});
+                    gz = str2double(c1{17});
+                    temp = str2double(c1{18});
+                    pres = str2double(c1{19});
+                    humd = str2double(c1{20});
+                    altalt = str2double(c1{21});
+                    try
+                        % b1 = strsplit(c1{21}, '%%');
+                        b1 = strsplit(c1{22}, '--');
+                    catch
+                        keyboard
+                    end
+                    pitot = str2double(b1{1});
+%                     temparry = [hr, mn, sc, ms, alt, ax, ay, az, ...
+%                         wx, wy, wz, mx, my, mz, ex, ey, ez, gx, gy, ...
+%                         gz, temp, sped, gust, dirn, elpsdtme];
+                    temparry = [hr, mn, sc, ms, alt, ax, ay, az, ...
+                        wx, wy, wz, mx, my, mz, ex, ey, ez, gx, gy, ...
+                        gz, temp, pres, humd, altalt, pitot, elpsdtme];
+                    % GND = [GND; temparry];
+                    GND(cntr3, :) = temparry;
+                    cntr3 = cntr3 + 1;
+                catch
                     keyboard
-                if ms < 0
-                    ms = -ms;
                 end
-                elpsdtme = hr*3600 + mn*60 + sc + ms/1000;
-                d2 = strsplit(c1{2}, ':');
-                alt = str2double(d2{1});
-                ax = str2double(d2{2});
-                ay = str2double(c1{3});
-                az = str2double(c1{4});
-                wx = str2double(c1{5});
-                wy = str2double(c1{6});
-                wz = str2double(c1{7});
-                mx = str2double(c1{8});
-                my = str2double(c1{9});
-                mz = str2double(c1{10});
-                ex = str2double(c1{11});
-                ey = str2double(c1{12});
-                ez = str2double(c1{13});
-                gx = str2double(c1{14});
-                gy = str2double(c1{15});
-                gz = str2double(c1{16});
-                temp = str2double(c1{17});
-                sped = str2double(c1{18});
-                gust = str2double(c1{19});               
-                b1 = strsplit(c1{20}, '%%');
-                dirn = str2double(b1{1}) + dirnoff;
-                temparry = [hr, mn, sc, ms, alt, ax, ay, az, ...
-                    wx, wy, wz, mx, my, mz, ex, ey, ez, gx, gy, ...
-                    gz, temp, sped, gust, dirn, elpsdtme];
-                GND = [GND; temparry];
             end
             newline = fgetl(fid);
             cntr = cntr + 1;
