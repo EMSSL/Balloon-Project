@@ -27,16 +27,21 @@
 Adafruit_BNO055 IMU = Adafruit_BNO055(55,BNO055_ADDRESS_B);
 char* outputText;
 
+#define altPower 11
+
 void setup() {
   delay(5000);    // used to read setup debug code
   usb.begin(115200);
 
   pinMode(imuPower, OUTPUT);
+  pinMode(altPower, OUTPUT);    //
+  delay(250);
   digitalWrite(imuPower, HIGH);
+  digitalWrite(altPower, HIGH);
   delay(250);
 
   int i = 0;
-  while(!IMU.begin() && i < 100){
+  while(!IMU.begin() && (i < 100)){
     i++;
   }
   if(i > 99){
@@ -46,15 +51,49 @@ void setup() {
   else{
     usb.println(F("IMU is functional!"));
   }
-  usb.println(F("DATA DATA DATA\n\n EULER ANGLES X,Y,Z  :  QUATERNION STUFF\n"));
+  usb.println(F("DATA DATA DATA\n\n EULER ANGLES : EULERS FROM QUAT  :  QUATERNION STUFF\n"));
 }
 
 void loop() {
   delay(100);
 
   imu::Vector<3> BN_eul = IMU.getVector(Adafruit_BNO055::VECTOR_EULER);
+  imu::Vector<3> BN_grav = IMU.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
+  imu::Vector<3> BN_mag = IMU.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
   imu::Quaternion BN_quat = IMU.getQuat();
+  imu::Vector<3> BN_2eul = BN_quat.toEuler();
+
+
   
-  sprintf(outputText,"%f,%f,%f:%f,%f,%f%f",BN_eul.x(),BN_eul.y(),BN_eul.z(),BN_quat.w(),BN_quat.x(),BN_quat.y(),BN_quat.z());
-  usb.println(outputText);
+  usb.print(BN_eul.x());
+  usb.print(F(","));
+  usb.print(BN_eul.y());
+  usb.print(F(","));
+  usb.print(BN_eul.z());
+  usb.print(F(":"));
+  usb.print(BN_2eul.x());
+  usb.print(F(","));
+  usb.print(BN_2eul.y());
+  usb.print(F(","));
+  usb.print(BN_2eul.z());
+  usb.print(F(":"));
+  usb.print(BN_mag.x());
+  usb.print(F(","));
+  usb.print(BN_mag.y());
+  usb.print(F(","));
+  usb.print(BN_mag.z());
+  usb.print(F(":"));
+  usb.print(BN_grav.x());
+  usb.print(F(","));
+  usb.print(BN_grav.y());
+  usb.print(F(","));
+  usb.print(BN_grav.z());
+  usb.print(F(":"));
+  usb.print(BN_quat.w());
+  usb.print(F(","));
+  usb.print(BN_quat.x());
+  usb.print(F(","));
+  usb.print(BN_quat.y());
+  usb.print(F(","));
+  usb.println(BN_quat.z());
 }
