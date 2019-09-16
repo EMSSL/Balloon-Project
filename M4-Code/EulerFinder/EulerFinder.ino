@@ -29,9 +29,14 @@ char* outputText;
 
 #define altPower 11
 
+String OtherflushTotal;
+long lastTime = 0;
+
 void setup() {
   delay(5000);    // used to read setup debug code
   usb.begin(115200);
+
+  OtherflushTotal.reserve(500);
 
   pinMode(imuPower, OUTPUT);
   pinMode(altPower, OUTPUT);    //
@@ -55,45 +60,62 @@ void setup() {
 }
 
 void loop() {
-  delay(100);
+  delay(50);
 
-  imu::Vector<3> BN_eul = IMU.getVector(Adafruit_BNO055::VECTOR_EULER);
-  imu::Vector<3> BN_grav = IMU.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
-  imu::Vector<3> BN_mag = IMU.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
-  imu::Quaternion BN_quat = IMU.getQuat();
-  imu::Vector<3> BN_2eul = BN_quat.toEuler();
+    imu::Vector<3> BN_acc = IMU.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER); // creates vectors for each event
+    imu::Vector<3> BN_gyro = IMU.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+    imu::Vector<3> BN_mag = IMU.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+    imu::Vector<3> BN_eul = IMU.getVector(Adafruit_BNO055::VECTOR_EULER);
+    imu::Vector<3> BN_grav = IMU.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
 
+    long timeStamp = millis();
+    OtherflushTotal = timeStamp;
+    OtherflushTotal = OtherflushTotal + F(":") + BN_acc.x() + F(",") + BN_acc.y() + F(",") + BN_acc.z();
+    OtherflushTotal = OtherflushTotal + F(":") + BN_gyro.x() + F(",") + BN_gyro.y() + F(",") + BN_gyro.z();
+    OtherflushTotal = OtherflushTotal + F(":") + BN_mag.x() + F(",") + BN_mag.y() + F(",") + BN_mag.z();
+    OtherflushTotal = OtherflushTotal + F(":") + BN_eul.x() + F(",") + BN_eul.y() + F(",") + BN_eul.z();
+    OtherflushTotal = OtherflushTotal + F(":") + BN_grav.x() + F(",") + BN_grav.y() + F(",") + BN_grav.z();
+      
+    usb.println(OtherflushTotal);
+    
 
-  
-  usb.print(BN_eul.x());
-  usb.print(F(","));
-  usb.print(BN_eul.y());
-  usb.print(F(","));
-  usb.print(BN_eul.z());
-  usb.print(F(":"));
-  usb.print(BN_2eul.x());
-  usb.print(F(","));
-  usb.print(BN_2eul.y());
-  usb.print(F(","));
-  usb.print(BN_2eul.z());
-  usb.print(F(":"));
-  usb.print(BN_mag.x());
-  usb.print(F(","));
-  usb.print(BN_mag.y());
-  usb.print(F(","));
-  usb.print(BN_mag.z());
-  usb.print(F(":"));
-  usb.print(BN_grav.x());
-  usb.print(F(","));
-  usb.print(BN_grav.y());
-  usb.print(F(","));
-  usb.print(BN_grav.z());
-  usb.print(F(":"));
-  usb.print(BN_quat.w());
-  usb.print(F(","));
-  usb.print(BN_quat.x());
-  usb.print(F(","));
-  usb.print(BN_quat.y());
-  usb.print(F(","));
-  usb.println(BN_quat.z());
+//  imu::Vector<3> BN_eul = IMU.getVector(Adafruit_BNO055::VECTOR_EULER);
+//  imu::Vector<3> BN_grav = IMU.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
+//  imu::Vector<3> BN_mag = IMU.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+//  imu::Quaternion BN_quat = IMU.getQuat();
+//  imu::Vector<3> BN_2eul = BN_quat.toEuler();
+//
+//
+//  
+//  usb.print(BN_eul.x());
+//  usb.print(F(","));
+//  usb.print(BN_eul.y());
+//  usb.print(F(","));
+//  usb.print(BN_eul.z());
+//  usb.print(F(":"));
+//  usb.print(BN_2eul.x());
+//  usb.print(F(","));
+//  usb.print(BN_2eul.y());
+//  usb.print(F(","));
+//  usb.print(BN_2eul.z());
+//  usb.print(F(":"));
+//  usb.print(BN_mag.x());
+//  usb.print(F(","));
+//  usb.print(BN_mag.y());
+//  usb.print(F(","));
+//  usb.print(BN_mag.z());
+//  usb.print(F(":"));
+//  usb.print(BN_grav.x());
+//  usb.print(F(","));
+//  usb.print(BN_grav.y());
+//  usb.print(F(","));
+//  usb.print(BN_grav.z());
+//  usb.print(F(":"));
+//  usb.print(BN_quat.w());
+//  usb.print(F(","));
+//  usb.print(BN_quat.x());
+//  usb.print(F(","));
+//  usb.print(BN_quat.y());
+//  usb.print(F(","));
+//  usb.println(BN_quat.z());
 }
