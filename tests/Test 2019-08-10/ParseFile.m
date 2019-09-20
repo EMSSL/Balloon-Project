@@ -216,7 +216,7 @@ switch FileFlag
                 c1 = strsplit(newline, ',');
                 % if strcmp(c1{1}, '$GPGGA') == 1 && length(c1) > 10
                 try
-                    if strcmp(c1{1}, '$GPGGA') == 1 && length(c1) == 14
+                    if strcmp(c1{1}, '$GPGGA') == 1 && length(c1) >= 14
                         tmeraw = c1{2};
                         hr = str2double(tmeraw(1:2));
                         mn = str2double(tmeraw(3:4));
@@ -243,7 +243,7 @@ switch FileFlag
                         cntr1 = cntr1 + 1;
                         % keyboard
                     
-                    elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) == 11
+                    elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) >= 11
                     % elseif strcmp(c1{1}, '$GPRMC') == 1 && length(c1) > 10
                         tmeraw = c1{2};
                         if length(tmeraw) > 3
@@ -270,9 +270,14 @@ switch FileFlag
                         end   
                     else
                         % warning('Dunno what to do here.... skip?');
+                        % newline
+                        % c1
+                        % keyboard
                     end
-                catch 
-                    keyboard
+                catch
+                    newline
+                    % c1
+                    % keyboard
                 end
             end  
             newline = fgetl(fid);

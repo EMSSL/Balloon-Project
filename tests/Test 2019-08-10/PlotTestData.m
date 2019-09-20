@@ -30,225 +30,144 @@ close all
 clear
 
 % % test times in seconds wrt 0 hrs
-% Elapsed_1 = [76800, 77900, 79000];   % test bounds including ascent/descent
-Elapsed_1 = [77110, 77720]; % test 1, just float
-Elapsed_2 = [78030, 78630]; % test 2, just float
-Elapsed_3 = [79100, 79300];
-% Elapsed_1 = [7.7, 7.79]*10000;
-% Elapsed_2 = [7.79, 7.9]*10000;
+% NOTE: These are pulled by hand
+ascent_float_descent_1 = [5.440, 5.493, 5.523, 5.560]*(10^4);
+ascent_float_descent_2 = [5.560, 5.590, 5.616, 5.630]*(10^4);
+ascent_float_descent_3 = [5.630, 5.643, 5.705, 5.735]*(10^4);
+float_1 = ascent_float_descent_1(2:3);
+float_2 = ascent_float_descent_2(2:3);
+float_3 = ascent_float_descent_3(2:3);
+GPS_fix = [4.9, 5.831]*(10^4);          % time to average GPS station values
 
-% directories where the data lives
-dirs = {'GNDStation';
-        'Gondola';
-        'Sail';
-        'Vane'};
-maindir = pwd;
+% directories
+dirsGPS = {'gndOGGPS.mat';
+           'gondoGPS.mat';
+           'sailGPS.mat';
+           'gndXTRAGPS.mat'};
+dirsAO = {'gndOGAO.mat';
+           'gondoAO.mat';
+           'sailAO.mat';
+           'gndXTRAAO.mat'};
 
 % magnetic declination for RDU for 12/18/18
 % taken from: http://www.geomag.nrcan.gc.ca/calc/mdcal-en.php
-dec_deg = DMStoDD(9, 19.32, 0, 'W');
-
+% dec_deg = DMStoDD(9, 19.32, 0, 'W');
+dec_deg = DMStoDD(0, 19.86, 0, 'W');    % 35.7685N, 78.6624W
 
 % go get datas
-disp('Extracting GPS data...');
-for i1 = 1:length(dirs)
-    
-    % housekeeping
-    disp(['Processing GPS data for: ', dirs{i1}]);
-    cd(fullfile(maindir, dirs{i1}));    % set directory
-    ls_names = ls;
-    gpsmat_name = 'GPSmat_full.mat';
-    aomat_name = 'AOmat_full.mat';
-    gpsfile = 'NaN';
-    
-    % check for pre-processed matrices
-    if exist(gpsmat_name, 'file') ~= 2
-        disp('Matrix file not found. Extracting GPS data.');      
-        for j1 = 1:length(ls_names)
-            % c1 = strsplit(ls_names{j1}, '_GPS');
-            gpsfilename = strtrim(ls_names(j1, :));
-            c1 = strsplit(gpsfilename, '_GPS');
-            if length(c1) == 2
-                gpsfile = gpsfilename;
-                break
-            end
-        end
-        if strcmp(gpsfile, 'NaN') == 1
-            error('GPS file not found.');
-        end
-        cd(maindir);
-        filename = fullfile(maindir, dirs{i1}, gpsfile);
-        GPS = ParseFile(filename, 'filetype', 'GPS');
-        cd(fullfile(maindir, dirs{i1}));
-        save(gpsmat_name, 'GPS'); 
-        cd(maindir);
-    else
-        disp('Matrix files found. Plotting data.');
-        cd(maindir);
-        s1 = load(fullfile(maindir, dirs{i1}, gpsmat_name));
-        switch i1
-            case 1
-                GPSstruct.GndS = s1.GPS;
-            case 2
-                GPSstruct.Gond = s1.GPS;
-            case 3
-                GPSstruct.Sail = s1.GPS;
-            case 4
-                GPSstruct.Vane = s1.GPS;
-        end
-
-    end
-    
+GPSstruct = {};
+AOstruct = {};
+for i1 = 1:length(dirsGPS)
+    s1 = load(dirsGPS{i1});
+    switch i1
+        case 1
+            GPSstruct.OGGS = s1.GPSdata;
+        case 2
+            GPSstruct.Gond = s1.GPSdata;
+        case 3
+            GPSstruct.Sail = s1.GPSdata;
+        case 4
+            GPSstruct.XGND = s1.GPSdata;
+    end    
 end
-
-% % plot all GPS data - raw
-PlotGPSTestALL(GPSstruct.Gond, GPSstruct.Vane, GPSstruct.Sail, GPSstruct.GndS, [], []);
-% title('All data');
-
-
-% GPS data - corrected
-Station = [GPSstruct.GndS.GPGGA(:, 11), GPSstruct.GndS.GPGGA(:, 4), GPSstruct.GndS.GPGGA(:, 5), GPSstruct.GndS.GPGGA(:, 9)]; 
-Gondo_mat = [GPSstruct.Gond.GPGGA(:, 11), GPSstruct.Gond.GPGGA(:, 4), GPSstruct.Gond.GPGGA(:, 5), GPSstruct.Gond.GPGGA(:, 9)]; 
-% [lat0, lon0, alt0, Gondo_dGPS, errs, stats] = dGPS(Station, Gondo_mat, 'plot', 'station');
-[lat0, lon0, alt0, Gondo_dGPS, errs, stats] = dGPS(Station, Gondo_mat, 'plot', 'off');
-Vane_mat = [GPSstruct.Vane.GPGGA(:, 11), GPSstruct.Vane.GPGGA(:, 4), GPSstruct.Vane.GPGGA(:, 5), GPSstruct.Vane.GPGGA(:, 9)]; 
-[~, ~, ~, Vane_dGPS, errs, stats] = dGPS(Station, Vane_mat, 'plot', 'off');
-Sail_mat = [GPSstruct.Sail.GPGGA(:, 11), GPSstruct.Sail.GPGGA(:, 4), GPSstruct.Sail.GPGGA(:, 5), GPSstruct.Sail.GPGGA(:, 9)]; 
-[~, ~, ~, Sail_dGPS, errs, stats] = dGPS(Station, Sail_mat, 'plot', 'off');
-GndS_dGPS = NaN*Station;                    % create matrix for ground station positions
-GndS_dGPS(:, 1) = Station(:, 1);
-GndS_dGPS(:, 2) = 0*Station(:, 2) + lat0;
-GndS_dGPS(:, 3) = 0*Station(:, 3) + lon0;
-GndS_dGPS(:, 4) = 0*Station(:, 4) + alt0;
-
-
-% plot each test separatly - XYZ  
-% find test points
-% PlotGPSTestALL(GPSstruct.Gond, GPSstruct.Vane, GPSstruct.Sail, GPSstruct.GndS, Elapsed_1(1), Elapsed_1(2));
-% 
-% % plot xy for test points
-% % lat0 = mean(GPSstruct.GndS.GPGGA(:, 4));
-% % lon0 = mean(GPSstruct.GndS.GPGGA(:, 5));
-% % GetXYZTest(GPSstruct.Gond, GPSstruct.Vane, GPSstruct.Sail, GPSstruct.GndS, Elapsed_1(1:2), 'titles', 'positive', 'lat0', lat0, 'lon0', lon0);
-% % GetXYZTest(GPSstruct.Gond, GPSstruct.Vane, GPSstruct.Sail, GPSstruct.GndS, Elapsed_1(2:3), 'titles', 'negtive', 'lat0', lat0, 'lon0', lon0);
-% postest = GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, Elapsed_1(1:2), 'titles', 'positive', 'lat0', lat0, 'lon0', lon0, 'input', 'vec', 'legendloc', 'northwest');
-% negtest = GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, Elapsed_2(1:2), 'titles', 'negtive', 'lat0', lat0, 'lon0', lon0, 'input', 'vec', 'legendloc', 'northwest');
-% 
-% % fix axis bounds/labels
-% p3 = figure(3);
-% xlim3 = xlim;
-% ylim3 = ylim;
-% p5 = figure(5);
-% xlim5 = xlim;
-% ylim5 = ylim;
-% xlimz = [min([xlim3(1), xlim5(1)]), max([xlim3(2), xlim5(2)])];
-% ylimz = [min([ylim3(1), ylim5(1)]), max([ylim3(2), ylim5(2)])];
-% p3.CurrentAxes.XLim = xlimz;
-% p3.CurrentAxes.YLim = ylimz;
-% p5.CurrentAxes.XLim = xlimz;
-% p5.CurrentAxes.YLim = ylimz;
-
-
 
 % AO data
-disp(' ');
-disp('Extracting AO data....');
-% dirs = {'GNDStation'; 'Gondola'; 'Sail'; 'Vane'};
-strtline = [1074, 1804, 1841, 1823];
-for i1 = 1:length(dirs)     % skip ground station since not sure parse
-    
-    % housekeeping
-    disp(['Processing sensor data for: ', dirs{i1}]);
-    cd(fullfile(maindir, dirs{i1}));    % set directory
-    ls_names = ls;
-    gpsmat_name = 'AOmat_full.mat';
-    gpsfile = 'NaN';
-    
-    % check for pre-processed matrices
-    if exist(gpsmat_name, 'file') ~= 2
-        disp('Matrix file not found. Extracting sensor data.');      
-        for j1 = 1:length(ls_names)
-            % c1 = strsplit(ls_names{j1}, '_GPS');
-            gpsfilename = strtrim(ls_names(j1, :));
-            c1 = strsplit(gpsfilename, '_Sensor');
-            if length(c1) == 2
-                gpsfile = gpsfilename;
-                break
-            end
-        end
-        if strcmp(gpsfile, 'NaN') == 1
-            error('Sensor file not found.');
-        end
-        cd(maindir);
-        filename = fullfile(maindir, dirs{i1}, gpsfile);
-        filetype = 'AO';
-        if i1 == 1
-            filetype = 'GND2018';
-        end
-        AO = ParseFile(filename, 'filetype', filetype, 'startline', strtline(i1));
-        cd(fullfile(maindir, dirs{i1}));
-        save(gpsmat_name, 'AO'); 
-        cd(maindir);
-    else
-        disp('Matrix files found. Plotting data.');
-        cd(maindir);
-        s1 = load(fullfile(maindir, dirs{i1}, gpsmat_name));
-        switch i1
-            case 1
-                AOstruct.GndS = s1.AO.GND;
-            case 2
-                AOstruct.Gond = s1.AO.AO;
-            case 3
-                AOstruct.Sail = s1.AO.AO;
-            case 4
-                AOstruct.Vane = s1.AO.AO;
-        end
-        
-    end 
+for i1 = 1:length(dirsAO)     % skip ground station since not sure parse
+    s1 = load(dirsAO{i1});
+    % keyboard
+    switch i1
+        case 1
+            AOstruct.OGGS = s1.AOdata.GND;
+        case 2
+            AOstruct.Gond = s1.AOdata.AO;
+        case 3
+            AOstruct.Sail = s1.AOdata.AO;
+        case 4
+            AOstruct.XGND = s1.AOdata.GND;
+    end
 end
 
-% plot the GPS XYZ data for only the small times
-postest = GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, ...
-    Elapsed_1, 'titles', 'positive', 'lat0', lat0, 'lon0', lon0, ...
-    'input', 'vec', 'legendloc', 'northwest', 'figures', 'none');
-negtest = GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, ...
-    Elapsed_2, 'titles', 'negtive', 'lat0', lat0, 'lon0', lon0, ...
-    'input', 'vec', 'legendloc', 'northwest', 'figures', 'none');
+% ------------------------------------------------------------------------
+%                        plot all GPS data - raw
+% ------------------------------------------------------------------------
+% PlotGPSTestALL(Gondo_GPS, Vane_GPS, Sail_GPS, Ground_GPS, Elapsed_1, Elapsed_2) 
+% takes the data in Gondo, Vane, Sail, and Ground station and returns
+% figures of the data. 
+% INPUTS
+% Gondo_GPS     = Gondola GPS structure
+% Vane_GPS      = Vane GPS structure (can replace with OG ground station)
+% Sail_GPS      = Sail GPS structure
+% Ground_GPS    = Ground GPS structure (new ground station)
+% Elapsed_1     = starting times for each new trial in elapsed seconds
+% Elapsed_2     = starting times for each new trial in elapsed seconds
+PlotGPSTestALL(GPSstruct.Gond, GPSstruct.OGGS, GPSstruct.Sail, GPSstruct.XGND, [], []);
+subplot(3, 1, 1);
+title('All data, raw');
+legend({'Gondola', 'OG GND', 'Sail', 'New GND'}, 'location', ...
+    'southwest', 'interpreter', 'latex');
+subplot(3, 1, 2);
+ylim([-78.664, -78.662]);
+subplot(3, 1, 3);
+ylim([0, 300]);
 
-% % plot wind speed - ALL
-% % PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind', 'pitotcal', 'generic', 'timebounds', Elapsed_1(1:2))
-% % PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind', 'pitotcal', 'generic')
-% GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, ...
-%     , 'titles', 'positive', 'lat0', lat0, 'lon0', lon0, ...
-%     'input', 'vec', 'legendloc', 'northwest');
-% PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind')
-% % PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind', 'pitotcal', '1-9-19-Cal')
+% keyboard
 
 
+% ------------------------------------------------------------------------
+%                 plot wind speed/direction data - floats
+% ------------------------------------------------------------------------
+% Returns a plot of the specified data from the gondola, vane, sail, and
+% ground station. Varargin can be any of the following name/value pairs:
+%   'timebounds' | [start, end] = used to plot data for a given interval of
+%   start and end. The value is a two element vector of start and stop
+%   times. 
+%   'data' | 'accl', 'mag', 'angvel', 'grav', 'wind', 'euler', 'head'
+%   Used to specify what data to plot. Default is acceleration. 
+%   'rho' | 1.225,  density of the atmosphere at ground level
+%   'magdec' | 0 deg, magnetic declination angle for flight location. 
+%   '
+%   
+% INPUTS:
+%   Gondo_AO    = gondola AO data matrix
+%   Vane_AO     = Vane AO data matrix
+%   NewSail_AO  = NewSail AO data matrix
+%   Ground_AO   = Ground AO data matrix
+% 
+% References:
+% https://aerocontent.honeywell.com/aero/common/documents/myaerospacecatalog-documents/Defense_Brochures-documents/Magnetic__Literature_Application_notes-documents/AN203_Compass_Heading_Using_Magnetometers.pdf
 
-% % plot wind direction - ALL
-% % from plots, the zero values are:
-% % Gondo = 762, Vane = 539, Sail = 535
-% PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, ...
-%     'data', 'wind', 'timebounds', Elapsed_3)
+% wind speed/dirn - all
+windspd = PlotAOData(AOstruct.Gond, AOstruct.OGGS, AOstruct.Sail, AOstruct.XGND, ...
+    'data', 'wind', 'magdec', dec_deg, 'dircal', 'solve', ...
+    'title', 'all', 'pitotcal', '8-10-19-Cal');
+winddir = PlotAOData(AOstruct.Gond, AOstruct.OGGS, AOstruct.Sail, AOstruct.XGND, ...
+    'data', 'head', 'magdec', dec_deg, 'dircal', 'solve', ...
+    'title', 'all');
 
-    
-% plot wind direction - only floats
-fprintf('\nComparison notes:\n');
-test1 = [77300, Elapsed_1(2)];  % second half of flight, 
-shortpos = PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, ...
+% keyboard
+
+% wind speeds
+float_1 = ascent_float_descent_1(2:3);  % positive
+float_2 = ascent_float_descent_2(2:3);  % zero
+float_3 = ascent_float_descent_3(2:3);  % negative
+f1 = PlotAOData(AOstruct.Gond, AOstruct.OGGS, AOstruct.Sail, AOstruct.XGND, ...
     'data', 'head', 'magdec', dec_deg, 'dircal', 'solve', 'timebounds', ...
-    test1, 'title', 'positive', 'plots', 'none');
-datastats1 = CalcStats(shortpos.Gondo(shortpos.TsGondo:shortpos.TeGondo));
-test2 = [78410, 78630];  % second half of flight, 
-shortneg = PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, ...
+    float_1, 'title', 'positive', 'plots', 'none');
+datastats1 = CalcStats(f1.Gondo(f1.TsGondo:f1.TeGondo));
+f2 = PlotAOData(AOstruct.Gond, AOstruct.OGGS, AOstruct.Sail, AOstruct.XGND, ...
     'data', 'head', 'magdec', dec_deg, 'dircal', 'solve', 'timebounds', ...
-    test2, 'title', 'negative', 'plots', 'none');
-datastats2 = CalcStats(shortneg.Gondo(shortneg.TsGondo:shortneg.TeGondo));
-fprintf('%20s%20s%20s\n', 'Gondo heading stats:', 'Positive', 'Negative');
-fprintf('%20s%20.4f%20.4f\n', 'xbar = ', datastats1.xbar, datastats2.xbar);
-fprintf('%20s%20.4f%20.4f\n', 'median = ', datastats1.medi, datastats2.medi);
-fprintf('%20s%20.4f%20.4f\n', 'std = ', datastats1.sigm, datastats2.sigm);
+    float_2, 'title', 'zero', 'plots', 'none');
+datastats2 = CalcStats(f2.Gondo(f2.TsGondo:f2.TeGondo));
+f3 = PlotAOData(AOstruct.Gond, AOstruct.OGGS, AOstruct.Sail, AOstruct.XGND, ...
+    'data', 'head', 'magdec', dec_deg, 'dircal', 'solve', 'timebounds', ...
+    float_3, 'title', 'negative', 'plots', 'none');
+datastats3 = CalcStats(f3.Gondo(f3.TsGondo:f3.TeGondo));
+% fprintf('%20s%20s%20s\n', 'Gondo heading stats:', 'Positive', 'Negative');
+% fprintf('%20s%20.4f%20.4f\n', 'xbar = ', datastats1.xbar, datastats2.xbar);
+% fprintf('%20s%20.4f%20.4f\n', 'median = ', datastats1.medi, datastats2.medi);
+% fprintf('%20s%20.4f%20.4f\n', 'std = ', datastats1.sigm, datastats2.sigm);
+
+keyboard
 
 % plot wind speed - only floats
 shortpos = PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, ...
@@ -311,6 +230,72 @@ xlabel('Time [s]');
 ylabel('Wind speed [m/s]');
 legend({'Sail', 'Ground', 'Vane'});
 title('negative');
+
+keyboard
+
+% ------------------------------------------------------------------------
+%                        plot all GPS data - corrected
+% ------------------------------------------------------------------------
+% [lat0, lon0, alt0, errs] = dGPS(Station, mover, varargin) returns
+% the nominal lat0, lon0, and alt0 of a stationary ground station in
+% addition to the time errors of a moving GPS point (mover). 
+%
+% INPUT:
+% Station   = a matrix of [time, lat, lon, alt]
+% Mover     = a matrix of [time, lat, lon, alt]
+%
+% OUTPUT:
+% lat0      = time average latitude of station
+% lon0      = time average longitude of station
+% alt0      = time average altitude of station
+% errs      = array of [time, lat_err, lon_err, alt_err] in the Mover times
+% newMove   = Mover data corrected for the errors
+%
+% References:
+% https://racelogic.support/01VBOX_Automotive/01General_Information/Knowledge_Base/How_does_DGPS_(Differential_GPS)_work%3F
+% https://www.e-education.psu.edu/geog160/node/1925
+Station = [GPSstruct.XGND.GPGGA(:, 11), GPSstruct.XGND.GPGGA(:, 4), GPSstruct.XGND.GPGGA(:, 5), GPSstruct.XGND.GPGGA(:, 9)]; 
+Gondo_mat = [GPSstruct.Gond.GPGGA(:, 11), GPSstruct.Gond.GPGGA(:, 4), GPSstruct.Gond.GPGGA(:, 5), GPSstruct.Gond.GPGGA(:, 9)]; 
+% Vane_mat = [GPSstruct.Vane.GPGGA(:, 11), GPSstruct.Vane.GPGGA(:, 4), GPSstruct.Vane.GPGGA(:, 5), GPSstruct.Vane.GPGGA(:, 9)]; 
+Sail_mat = [GPSstruct.Sail.GPGGA(:, 11), GPSstruct.Sail.GPGGA(:, 4), GPSstruct.Sail.GPGGA(:, 5), GPSstruct.Sail.GPGGA(:, 9)]; 
+% [lat0, lon0, alt0, Gondo_dGPS, errs, stats] = dGPS(Station, Gondo_mat, 'plot', 'station');
+[lat0, lon0, alt0, Gondo_dGPS, errs, stats] = dGPS(Station, Gondo_mat, 'plot', 'off');
+% [~, ~, ~, Vane_dGPS, errs, stats] = dGPS(Station, Vane_mat, 'plot', 'off');
+[~, ~, ~, Sail_dGPS, errs, stats] = dGPS(Station, Sail_mat, 'plot', 'off');
+GndS_dGPS = NaN*Station;                    % create matrix for ground station positions
+GndS_dGPS(:, 1) = Station(:, 1);
+GndS_dGPS(:, 2) = 0*Station(:, 2) + lat0;
+GndS_dGPS(:, 3) = 0*Station(:, 3) + lon0;
+GndS_dGPS(:, 4) = 0*Station(:, 4) + alt0;
+
+keyboard
+
+% ------------------------------------------------------------------------
+%                        plot XYZ data - floats
+% ------------------------------------------------------------------------
+% plot the GPS XYZ data for only the small times
+postest = GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, ...
+    Elapsed_1, 'titles', 'positive', 'lat0', lat0, 'lon0', lon0, ...
+    'input', 'vec', 'legendloc', 'northwest', 'figures', 'none');
+negtest = GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, ...
+    Elapsed_2, 'titles', 'negtive', 'lat0', lat0, 'lon0', lon0, ...
+    'input', 'vec', 'legendloc', 'northwest', 'figures', 'none');
+
+% % plot wind speed - ALL
+% % PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind', 'pitotcal', 'generic', 'timebounds', Elapsed_1(1:2))
+% % PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind', 'pitotcal', 'generic')
+% GetXYZTest(Gondo_dGPS, Vane_dGPS, Sail_dGPS, GndS_dGPS, ...
+%     , 'titles', 'positive', 'lat0', lat0, 'lon0', lon0, ...
+%     'input', 'vec', 'legendloc', 'northwest');
+% PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind')
+% % PlotAOData(AOstruct.Gond, AOstruct.Vane, AOstruct.Sail, AOstruct.GndS, 'data', 'wind', 'pitotcal', '1-9-19-Cal')
+
+
+
+    
+
+
+
 
 
 % plot the GPS XYZ data for only the small times
@@ -864,8 +849,12 @@ function PlotGPSTestALL(Gondo_GPS, Vane_GPS, Sail_GPS, Ground_GPS, Elapsed_1, El
 % figures of the data. 
 %
 % INPUTS
-% Elapsed_1 = starting times for each new trial in elapsed seconds
-% Elapsed_2 = starting times for each new trial in elapsed seconds
+% Gondo_GPS     = Gondola GPS structure
+% Vane_GPS      = Vane GPS structure (can replace with OG ground station)
+% Sail_GPS      = Sail GPS structure
+% Ground_GPS    = Ground GPS structure (new ground station)
+% Elapsed_1     = starting times for each new trial in elapsed seconds
+% Elapsed_2     = starting times for each new trial in elapsed seconds
 
 % input handling 
 trialflag = 0;
@@ -944,6 +933,7 @@ hold on
 % plot(GGA_Gondo_tme - GGA_Gondo_tme(1), GGA_Gondo_alt);
 % plot(GGA_Vane_tme - GGA_Vane_tme(1), GGA_Vane_alt);
 % plot(GGA_Sail_tme - GGA_Sail_tme(1), GGA_Sail_alt);
+
 % time since midnight
 plot(GGA_Gondo_tme, GGA_Gondo_alt);
 plot(GGA_Vane_tme, GGA_Vane_alt);
@@ -1193,6 +1183,17 @@ if isempty(varargin) ~= 1
                         pitot4 = [0.038165, 0.390406, 541.323529];
                         calflag = 2;                        
                         
+                    case '8-10-19-Cal'
+                        % Use Saruabh's wind tunnel calibration for the
+                        % 8-10-19 test
+                        % G bin1 = 361.6 * spd + 8702
+                        % R bin2 = 355.5 * spd + 8662
+                        % S bin3 = 324.6 * spd + 8752
+                        pitot1 = [1, -8702]/361.6;
+                        pitot2 = [1, -8662]/355.5;
+                        pitot3 = [1, -8752]/324.6;
+                        calflag = 3;
+                        
                     otherwise
                         error('Pitot calibration argument is not recognized.');
                 end
@@ -1262,7 +1263,6 @@ switch calflag
         bin0 = 758; % min bin value of gondo data
         plotData.Gondo = sqrt((2*((winds3 - bin0 + 512)*(5./1024)./0.00125-2000))./rho);
         
-        
         winds2 = plotData.Vane;
         newvane = NaN*winds2;
         for k1 = 1:length(winds2(:, 1))
@@ -1277,6 +1277,13 @@ switch calflag
         end
         plotData.Sail = newsail;          
             
+    case 3
+        % use cal data from 8-10-2019 test
+        % assume pitot1 = sail, pitot2 = n/a, pitot3 = gondo
+        winds1 = plotData.Sail; % bins
+        plotData.Sail = pitot1(1).*winds1 + pitot1(2);
+        winds1 = plotData.Gondo; % bins
+        plotData.Gondo = pitot3(1).*winds1 + pitot3(2);
         
     otherwise
 end
@@ -1550,7 +1557,10 @@ for i1 = 1:length(Hx)
         dirctn(i1) = 180;
     elseif Hy(i1) == 0 && Hx(i1) > 0 
         dirctn(i1) = 0;
+    elseif isnan(Hy(i1)) == 1 || isnan(Hx(i1)) == 1
+        dirctn(i1) = NaN;
     else
+        keyboard
         error('None of the criteria met.');
     end
     
